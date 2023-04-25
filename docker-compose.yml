@@ -1,0 +1,56 @@
+version: '3'
+services:
+#  service:
+#    build: my_project/app
+#    expose:
+#      - "8000"
+#    volumes:
+#      - ./app/static:/opt/app/static
+#    env_file:
+#      - my_project/app/config/.env
+#    depends_on:
+#      - database
+
+  database:
+    image: postgres:13
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./etl/full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
+
+#  nginx:
+#    image: nginx:1.19.2
+#    volumes:
+#      - ./my_project/nginx.conf:/etc/nginx/nginx.conf:ro
+#      - ./my_project/configs:/etc/nginx/conf.d:ro
+#      - ./my_project/data:/data/:ro
+#      - ./my_project/app/static:/opt/app/static
+#    depends_on:
+#      - service
+#    ports:
+#      - "80:80"
+
+  elasticsearch:
+    image: ghcr.io/yp-middle-python-24/elasticsearch:8.7.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    expose:
+      - '9200'
+    ports:
+      - '9200:9200'
+    depends_on:
+      - database
+
+  etl:
+    build: etl
+    env_file:
+      - .env
+    depends_on:
+#      - nginx
+#      - service
+      - elasticsearch
+
+volumes:
+  pgdata:
