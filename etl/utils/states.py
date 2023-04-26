@@ -2,6 +2,7 @@ import abc
 import json
 import os.path
 from typing import Any
+from redis import Redis
 
 
 class BaseStorage(abc.ABC):
@@ -43,6 +44,25 @@ class JsonFileStorage(BaseStorage):
         with open(self.file_path, "r") as file:
             state = json.load(file)
         return state
+
+
+class RedisStorage(BaseStorage):
+    """Реализация хранилища, использующего Redis."""
+
+    def __init__(self, redis: Redis) -> None:
+        self._redis = redis
+
+    def save_state(self, state: dict[str, Any]) -> None:
+        """Сохранить состояние в хранилище."""
+        self._redis.set('data', json.dumps(state))
+
+    def retrieve_state(self) -> dict[str, Any]:
+        """Получить состояние из хранилища."""
+        data = self._redis.get('data')
+        if data is None:
+            return {}
+
+        return json.loads(self._redis.get('data'))
 
 
 class State:

@@ -3,8 +3,9 @@ import time
 
 from postgres_tools.postgres_exctractor import PostgresExtractor
 from elasticsearch_tools.es_loader import ElasticsearchLoader
-from utils.states import State, JsonFileStorage
-from config import TIME_INTERVAL_SECONDS
+from utils.states import State, JsonFileStorage, RedisStorage
+from config import TIME_INTERVAL_SECONDS, redis_settings
+from redis import Redis
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -17,7 +18,8 @@ def main():
         try:
             logger.info(f"Starting data extraction and loading process. Repeats: {repeats}")
             es_loader = ElasticsearchLoader()
-            storage = JsonFileStorage("state.json")
+            radis_ = Redis(**redis_settings.dict())
+            storage = RedisStorage(radis_)
             state = State(storage)
 
             with PostgresExtractor(state=state) as extractor:
