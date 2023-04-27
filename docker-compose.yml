@@ -1,0 +1,44 @@
+version: '3'
+services:
+  database:
+    image: postgres:13
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./etl/full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
+
+  elasticsearch:
+    image: ghcr.io/yp-middle-python-24/elasticsearch:8.7.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    expose:
+      - '9200'
+    ports:
+      - '9200:9200'
+    depends_on:
+      - database
+
+  etl:
+    build: etl
+    env_file:
+      - .env
+    depends_on:
+      - elasticsearch
+      - redis
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6377:6379"
+
+volumes:
+  pgdata:
+  redis_data:
