@@ -3,7 +3,7 @@ import time
 
 from postgres_tools.postgres_exctractor import PostgresExtractor
 from elasticsearch_tools.es_loader import ElasticsearchLoader
-from utils.states import State, JsonFileStorage, RedisStorage
+from utils.states import State, RedisStorage
 from config import TIME_INTERVAL_SECONDS, redis_settings
 from redis import Redis
 
