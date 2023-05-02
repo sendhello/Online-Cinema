@@ -111,7 +111,7 @@ class PostgresExtractor:
         return list(related_film_work_ids)
 
     @backoff()
-    def get_all_updated_data(self) -> Generator[list[str], None, None]:
+    def get_all_updated_data(self) -> Generator[list[dict], None, None]:
         """
         Fetch all updated data from the tables film_work, person, and genre.
 
@@ -136,7 +136,7 @@ def main():
 
     with PostgresExtractor(state, postgres_settings.dict()) as extractor:
         for chunk in extractor.get_all_updated_data():
-            es_loader.load_data(chunk)
+            es_loader.load_data(chunk, index_name='index')
 
 
 if __name__ == '__main__':

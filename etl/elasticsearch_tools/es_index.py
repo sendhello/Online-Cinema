@@ -165,3 +165,9 @@ GENRES_INDEX = {
         }
     }
 }
+
+
+INDEXES = {
+    'movies': ES_INDEX,
+    'genres': GENRES_INDEX,
+}
