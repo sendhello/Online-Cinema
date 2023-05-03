@@ -4,6 +4,15 @@ class RoleType:
     DIRECTOR = {'name': 'director', }
 
 
+def get_updated_genres(last_update_time):
+    return f"""
+    SELECT g.id, g.name, g.updated_at
+    FROM content.genre g
+    WHERE g.updated_at > '{last_update_time}'
+        ORDER BY updated_at
+    """
+
+
 def get_updated_ids_query(table_name: str, last_update_time: str, limit: int) -> str:
     query = f"""
     SELECT id, updated_at
