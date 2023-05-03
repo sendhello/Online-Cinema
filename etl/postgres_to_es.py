@@ -23,9 +23,10 @@ def main():
             state = State(storage)
 
             with PostgresExtractor(state=state) as extractor:
-                for chunk in extractor.get_all_updated_data():
+                # for chunk in extractor.get_all_updated_data():
+                for chunk in extractor.fetch_genres():
                     logger.info(f"Loading {len(chunk)} records into Elasticsearch")
-                    es_loader.load_data(chunk, 'movies')
+                    es_loader.load_data(chunk, 'genres')
                     logger.info(f"Loaded {len(chunk)} records into Elasticsearch")
             logger.info("Data extraction and loading process completed")
         except Exception as e:
