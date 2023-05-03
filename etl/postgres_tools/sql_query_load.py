@@ -13,6 +13,15 @@ def get_updated_genres(last_update_time):
     """
 
 
+def get_updated_persons(last_update_time):
+    return f"""
+    SELECT p.id, p.full_name, p.updated_at
+    FROM ccontent.person p
+    WHERE p.updated_at > '{last_update_time}'
+        ORDER BY updated_at
+    """
+
+
 def get_updated_ids_query(table_name: str, last_update_time: str, limit: int) -> str:
     query = f"""
     SELECT id, updated_at
