@@ -6,7 +6,8 @@ from config import postgres_settings, CHUNK_SIZE
 from utils.states import State, JsonFileStorage
 from utils.backoff import backoff
 from postgres_tools.sql_query_load import (
-    get_updated_ids_query, get_films_by_related_ids_query, get_film_data_query
+    get_updated_ids_query, get_films_by_related_ids_query, get_film_data_query,
+    get_updated_genres, get_updated_persons
 )
 
 
@@ -37,6 +38,36 @@ class PostgresExtractor:
         """
         if self.conn is not None:
             self.conn.close()
+
+    @backoff()
+    def fetch_genres(self):
+        last_updated_at = self.state.get_state(f'genres_last_updated_at') or '1970-01-01 00:00:00'
+
+        with self.conn.cursor() as cursor:
+            cursor.execute(get_updated_genres(last_updated_at))
+            while True:
+                data = cursor.fetchmany(self.chunk_size)
+                if not data:
+                    break
+                formatted_dt = data[-1]['updated_at'].strftime('%Y-%m-%d %H:%M:%S.%f %z')
+                for item in data:
+                    item.pop('updated_at')
+                yield data
+                self.state.set_state(f'genres_last_updated_at', formatted_dt)
+
+    @backoff()
+    def fetch_persons(self):
+        last_updated_at = self.state.get_state(f'persons_last_updated_at') or '1970-01-01 00:00:00'
+
+        with self.conn.cursor() as cursor:
+            cursor.execute(get_updated_persons(last_updated_at))
+            while True:
+                data = cursor.fetchmany(self.chunk_size)
+                if not data:
+                    break
+                formatted_dt = data[-1]['updated_at'].strftime('%Y-%m-%d %H:%M:%S.%f %z')
+                yield data
+                self.state.set_state(f'persons_last_updated_at', formatted_dt)
 
     @backoff()
     def fetch_updated_data(self, table_name: str) -> Generator[list[str], None, None]:
