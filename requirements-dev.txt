@@ -1,0 +1,5 @@
+-r etl/requirements.txt
+-r src/requirements.txt
+
+flake8==6.0.0
+isort==5.12.0

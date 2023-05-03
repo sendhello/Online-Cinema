@@ -1,34 +1,29 @@
-import orjson
 from pydantic import BaseModel, Field
 
-
-def orjson_dumps(v, *, default):
-    return orjson.dumps(v, default=default).decode()
+from . import Model
 
 
 class UUIDMixin(BaseModel):
     uuid: str = Field(alias='id')
 
 
-class OrjsonMixin(BaseModel):
-    class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
-
-
-class Genre(UUIDMixin, OrjsonMixin):
+class Genre(Model, UUIDMixin):
     name: str
 
 
-class Person(UUIDMixin, OrjsonMixin):
+class Person(Model, UUIDMixin):
     full_name: str = Field(alias='name')
 
 
-class Film(UUIDMixin, OrjsonMixin):
+class Film(Model, UUIDMixin):
+    """Модель фильма из БД.
+    """
     title: str
     imdb_rating: float
-    description: str = ''
-    genre: list[Genre] = []
+    description: str | None
+    genre: list[str] = []
     actors: list[Person] = []
     writers: list[Person] = []
     directors: list[Person] = []
+    actors_names: list[str] = []
+    writers_names: list[str] = []
