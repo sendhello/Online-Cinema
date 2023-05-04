@@ -7,7 +7,6 @@ from utils.states import State, RedisStorage
 from config import TIME_INTERVAL_SECONDS, redis_settings
 from redis import Redis
 
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -23,17 +22,16 @@ def main():
             state = State(storage)
 
             with PostgresExtractor(state=state) as extractor:
-                for chunk in extractor.fetch_genres():
-                    index_name = 'genres'
-                    logger.info(f"Loading {len(chunk)} records into Elasticsearch, {index_name=}")
-                    es_loader.load_data(chunk, index_name)
-                    logger.info(f"Loaded {len(chunk)} records into Elasticsearch, {index_name=}")
-
-                for chunk in extractor.get_all_updated_data():
-                    index_name = 'movies'
-                    logger.info(f"Loading {len(chunk)} records into Elasticsearch, {index_name=}")
-                    es_loader.load_data(chunk, index_name)
-                    logger.info(f"Loaded {len(chunk)} records into Elasticsearch, {index_name=}")
+                extractor_funcs = {
+                    'genres': extractor.fetch_genres,
+                    'persons': extractor.fetch_persons,
+                    'movies': extractor.get_all_updated_data,
+                }
+                for index_name, func_extract in extractor_funcs.items():
+                    for chunk in func_extract():
+                        logger.info(f"Loading {len(chunk)} records into Elasticsearch, {index_name=}")
+                        es_loader.load_data(chunk, index_name)
+                        logger.info(f"Loaded {len(chunk)} records into Elasticsearch, {index_name=}")
 
             logger.info("Data extraction and loading process completed")
         except Exception as e:

@@ -33,6 +33,7 @@ class ElasticsearchLoader:
         self.batch_size = batch_size
         self.create_index('movies')
         self.create_index('genres')
+        self.create_index('persons')
 
     @backoff()
     def get_connect(self) -> Elasticsearch:
