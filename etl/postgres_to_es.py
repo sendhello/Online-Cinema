@@ -1,11 +1,11 @@
 import logging
 import time
 
-from postgres_tools.postgres_exctractor import PostgresExtractor
-from elasticsearch_tools.es_loader import ElasticsearchLoader
-from utils.states import State, RedisStorage
 from config import TIME_INTERVAL_SECONDS, redis_settings
+from elasticsearch_tools.es_loader import ElasticsearchLoader
+from postgres_tools.postgres_exctractor import PostgresExtractor
 from redis import Redis
+from utils.states import RedisStorage, State
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)

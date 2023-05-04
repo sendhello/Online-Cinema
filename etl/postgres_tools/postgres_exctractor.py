@@ -1,14 +1,17 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from typing import Generator, Optional, Callable
+from typing import Callable, Generator, Optional
 
-from config import postgres_settings, CHUNK_SIZE
-from utils.states import State, JsonFileStorage
-from utils.backoff import backoff
+import psycopg2
+from config import CHUNK_SIZE, postgres_settings
 from postgres_tools.sql_query_load import (
-    get_updated_ids_query, get_films_by_related_ids_query, get_film_data_query,
-    get_updated_genres, get_updated_persons
+    get_film_data_query,
+    get_films_by_related_ids_query,
+    get_updated_genres,
+    get_updated_ids_query,
+    get_updated_persons,
 )
+from psycopg2.extras import RealDictCursor
+from utils.backoff import backoff
+from utils.states import JsonFileStorage, State
 
 
 class PostgresExtractor:

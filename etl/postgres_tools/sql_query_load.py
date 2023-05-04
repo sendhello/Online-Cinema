@@ -54,9 +54,9 @@ def get_film_data_query(film_ids: list[str], limit: int) -> str:
     film_ids_line = ', '.join(f"'{id_}'" for id_ in film_ids)
     query = f"""
     SELECT fw.id, fw.title, fw.description, fw.rating as imdb_rating,
-        COALESCE(json_agg(DISTINCT jsonb_build_object('id', p.id, 'name', p.full_name)) 
+        COALESCE(json_agg(DISTINCT jsonb_build_object('id', p.id, 'name', p.full_name))
             FILTER (WHERE pfw.role = '{RoleType.ACTOR['name']}'), '[]') as {RoleType.ACTOR['name_plural']},
-        COALESCE(json_agg(DISTINCT jsonb_build_object('id', p.id, 'name', p.full_name)) 
+        COALESCE(json_agg(DISTINCT jsonb_build_object('id', p.id, 'name', p.full_name))
             FILTER (WHERE pfw.role = '{RoleType.WRITER['name']}'), '[]') as {RoleType.WRITER['name_plural']},
         COALESCE(json_agg(DISTINCT p.full_name)
             FILTER (WHERE pfw.role = '{RoleType.ACTOR['name']}'), '[]') as {RoleType.ACTOR['explanatory_name']},
