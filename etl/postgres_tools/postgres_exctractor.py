@@ -61,7 +61,7 @@ class PostgresExtractor:
             self.state.set_state(f'genres_last_updated_at', formatted_dt)
 
     @backoff()
-    def fetch_updated_data(self, table_name: str) -> Generator[list[str], None, None]:
+    def fetch_updated_data_ids(self, table_name: str) -> Generator[list[str], None, None]:
         """
         Fetch updated records' IDs from the given table_name.
 
@@ -124,7 +124,7 @@ class PostgresExtractor:
         :return: A generator yielding lists of updated records.
         """
         for table_name in self.tables_names:
-            for data_updated_chunk in self.fetch_updated_data(table_name):
+            for data_updated_chunk in self.fetch_updated_data_ids(table_name):
                 if table_name in self.related_tables_names:
                     related_film_work_ids = self.get_related_data(table_name, data_updated_chunk)
                     film_work_details = self.fetch_film_work_details(related_film_work_ids)
