@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from typing import Generator, Optional
+from typing import Generator, Optional, Callable
 
 from config import postgres_settings, CHUNK_SIZE
 from utils.states import State, JsonFileStorage
@@ -48,17 +48,25 @@ class PostgresExtractor:
                     break
                 yield data
 
-    @backoff()
-    def fetch_genres(self):
-        last_updated_at = self.state.get_state(f'genres_last_updated_at') or '1970-01-01 00:00:00'
-        query = get_updated_genres(last_updated_at)
+    def fetch_updated_data(self, table_name: str, get_query_func: Callable) -> Generator[list[dict], None, None]:
+        state_name = f'{table_name}_last_updated_at'
+        last_updated_at = self.state.get_state(state_name) or '1970-01-01 00:00:00'
+        query = get_query_func(last_updated_at)
 
         for data in self.execute_query(query):
             formatted_dt = data[-1]['updated_at'].strftime('%Y-%m-%d %H:%M:%S.%f %z')
             for item in data:
                 item.pop('updated_at')
             yield data
-            self.state.set_state(f'genres_last_updated_at', formatted_dt)
+            self.state.set_state(state_name, formatted_dt)
+
+    @backoff()
+    def fetch_genres(self) -> Generator[list[dict], None, None]:
+        yield from self.fetch_updated_data(self.related_tables_names[1], get_updated_genres)
+
+    @backoff()
+    def fetch_persons(self) -> Generator[list[dict], None, None]:
+        yield from self.fetch_updated_data(self.related_tables_names[0], get_updated_persons)
 
     @backoff()
     def fetch_updated_data_ids(self, table_name: str) -> Generator[list[str], None, None]:
