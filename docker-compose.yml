@@ -14,7 +14,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_HOST: ${POSTGRES_HOST}
     volumes:
       - pgdata:/var/lib/postgresql/data/
       - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
@@ -71,6 +70,23 @@ services:
       - elasticsearch
       - redis
       - postgres
+
+  api:
+    container_name: api
+    hostname: api
+    build: src
+    environment:
+      PROJECT_NAME: ${PROJECT_NAME}
+      ES_HOST: ${ES_HOST}
+      ES_PORT: ${ES_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    networks:
+      - network
+    ports:
+      - "8000:8000"
+    depends_on:
+      - etl
 
 volumes:
   pgdata:
