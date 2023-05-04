@@ -1,32 +1,61 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
+from api.schemas import Film, FullFilm
+from constants import FilmSort
 from services.film import FilmService, get_film_service
 
 router = APIRouter()
 
 
-class Film(BaseModel):
-    id: str
-    title: str
+@router.get('', response_model=list[Film])
+async def films(
+        sort: FilmSort | None = None,
+        genre: str | None = None,
+        page_size: int = 50,
+        page_number: int = 1,
+        film_service: FilmService = Depends(get_film_service)
+) -> list[Film]:
+    """Список фильмов.
+    """
+    films = await film_service.filter(page_size, page_number, sort, genre)
+    returned_films = [Film.parse_obj(film) for film in films]
+
+    return returned_films
+
+
+@router.get('/search', response_model=list[Film])
+async def film_search(
+        query: str | None = None,
+        page_size: int = 50,
+        page_number: int = 1,
+        film_service: FilmService = Depends(get_film_service)
+) -> list[Film]:
+    """Поиск по фильмам.
+    """
+    films = await film_service.filter(page_size, page_number, query)
+    returned_films = [Film.parse_obj(film) for film in films]
+
+    return returned_films
 
 
 # Внедряем FilmService с помощью Depends(get_film_service)
-@router.get('/{film_id}', response_model=Film)
-async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> Film:
+@router.get('/{film_id}', response_model=FullFilm)
+async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FullFilm:
+    """Страница фильма.
+    """
     film = await film_service.get_by_id(film_id)
     if not film:
-        # Если фильм не найден, отдаём 404 статус
-        # Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum
-                # Такой код будет более поддерживаемым
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
-    # Перекладываем данные из models.Film в Film
-    # Обратите внимание, что у модели бизнес-логики есть поле description
-        # Которое отсутствует в модели ответа API.
-        # Если бы использовалась общая модель для бизнес-логики и формирования ответов API
-        # вы бы предоставляли клиентам данные, которые им не нужны
-        # и, возможно, данные, которые опасно возвращать
-    return Film(id=film.id, title=film.title)
+    returned_film = FullFilm(
+        uuid=film.uuid,
+        title=film.title,
+        imdb_rating=film.imdb_rating,
+        description=film.description,
+        genres=film.genre,
+        cast=film.actors_names,
+    )
+
+    return returned_film

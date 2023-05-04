@@ -1,16 +1,12 @@
 import logging
+from typing import Iterable
 
+from config import CHUNK_SIZE, elasticsearch_settings
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
-from elasticsearch.helpers import BulkIndexError
-
-from config import elasticsearch_settings, CHUNK_SIZE
-from utils.backoff import backoff
+from elasticsearch.helpers import BulkIndexError, bulk
 from elasticsearch_tools.es_index import INDEXES
 from psycopg2.extras import RealDictCursor
-
-from typing import Iterable, Type
-
+from utils.backoff import backoff
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
