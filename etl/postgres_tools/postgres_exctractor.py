@@ -6,7 +6,8 @@ from config import postgres_settings, CHUNK_SIZE
 from utils.states import State, JsonFileStorage
 from utils.backoff import backoff
 from postgres_tools.sql_query_load import (
-    get_updated_ids_query, get_films_by_related_ids_query, get_film_data_query
+    get_updated_ids_query, get_films_by_related_ids_query, get_film_data_query,
+    get_updated_genres, get_updated_persons
 )
 
 
@@ -38,6 +39,27 @@ class PostgresExtractor:
         if self.conn is not None:
             self.conn.close()
 
+    def execute_query(self, query):
+        with self.conn.cursor() as cursor:
+            cursor.execute(query)
+            while True:
+                data = cursor.fetchmany(self.chunk_size)
+                if not data:
+                    break
+                yield data
+
+    @backoff()
+    def fetch_genres(self):
+        last_updated_at = self.state.get_state(f'genres_last_updated_at') or '1970-01-01 00:00:00'
+        query = get_updated_genres(last_updated_at)
+
+        for data in self.execute_query(query):
+            formatted_dt = data[-1]['updated_at'].strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            for item in data:
+                item.pop('updated_at')
+            yield data
+            self.state.set_state(f'genres_last_updated_at', formatted_dt)
+
     @backoff()
     def fetch_updated_data(self, table_name: str) -> Generator[list[str], None, None]:
         """
@@ -49,17 +71,11 @@ class PostgresExtractor:
         last_updated_at = self.state.get_state(f'{table_name}_last_updated_at') or '1970-01-01 00:00:00'
         query = get_updated_ids_query(table_name, last_updated_at, self.chunk_size)
 
-        with self.conn.cursor() as cursor:
-            cursor.execute(query)
-            while True:
-                data = cursor.fetchmany(self.chunk_size)
-                if not data:
-                    break
-
-                formatted_dt = data[-1]['updated_at'].strftime('%Y-%m-%d %H:%M:%S.%f %z')
-                data = [row['id'] for row in data]
-                yield data
-                self.state.set_state(f'{table_name}_last_updated_at', formatted_dt)
+        for data in self.execute_query(query):
+            formatted_dt = data[-1]['updated_at'].strftime('%Y-%m-%d %H:%M:%S.%f %z')
+            data = [row['id'] for row in data]
+            yield data
+            self.state.set_state(f'{table_name}_last_updated_at', formatted_dt)
 
     def fetch_related_film_works(self, table_name: str, related_ids: list[str]) -> Generator[list[str], None, None]:
         """
@@ -70,14 +86,9 @@ class PostgresExtractor:
         :return: A generator yielding lists of related film_work IDs.
         """
         query = get_films_by_related_ids_query(table_name, related_ids, limit=self.chunk_size)
-        with self.conn.cursor() as cursor:
-            cursor.execute(query)
-            while True:
-                data = cursor.fetchmany(self.chunk_size)
-                if not data:
-                    break
-                data = [row['id'] for row in data]
-                yield data
+        for data in self.execute_query(query):
+            data = [row['id'] for row in data]
+            yield data
 
     def fetch_film_work_details(self, film_work_ids: list[str]) -> Generator[list[str], None, None]:
         """
@@ -87,13 +98,8 @@ class PostgresExtractor:
         :return: A generator yielding lists of film_work details.
         """
         query = get_film_data_query(film_work_ids, limit=self.chunk_size)
-        with self.conn.cursor() as cursor:
-            cursor.execute(query)
-            while True:
-                data = cursor.fetchmany(self.chunk_size)
-                if not data:
-                    break
-                yield data
+        for data in self.execute_query(query):
+            yield data
 
     def get_related_data(self, table_name: str, relates_ids: list[str]) -> list[str]:
         """
@@ -111,7 +117,7 @@ class PostgresExtractor:
         return list(related_film_work_ids)
 
     @backoff()
-    def get_all_updated_data(self) -> Generator[list[str], None, None]:
+    def get_all_updated_data(self) -> Generator[list[dict], None, None]:
         """
         Fetch all updated data from the tables film_work, person, and genre.
 
@@ -136,7 +142,7 @@ def main():
 
     with PostgresExtractor(state, postgres_settings.dict()) as extractor:
         for chunk in extractor.get_all_updated_data():
-            es_loader.load_data(chunk)
+            es_loader.load_data(chunk, index_name='index')
 
 
 if __name__ == '__main__':
