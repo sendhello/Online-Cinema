@@ -6,14 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class PostgresSettings(BaseSettings):
-    dbname: str = 'movies_database'
-    user: str = 'app'
-    password: str
-    host: str = Field('127.0.0.1', env="POSTGRES_HOST")
-    port: int = Field('5432', env="POSTGRES_PORT")
-
-    class Config:
-        env_prefix = 'POSTGRES_'
+    dbname: str = Field('postgres', env="DB_NAME")
+    user: str = Field('postgres', env="DB_USER")
+    password: str = Field('postgres', env="DB_PASSWORD")
+    host: str = Field('127.0.0.1', env="DB_HOST")
+    port: int = Field('5432', env="DB_PORT")
 
 
 class ElasticsearchSettings(BaseSettings):
