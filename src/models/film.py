@@ -12,7 +12,7 @@ class Genre(Model, UUIDMixin):
 
 
 class Person(Model, UUIDMixin):
-    full_name: str = Field(alias='name')
+    full_name: str
 
 
 class Film(Model, UUIDMixin):
@@ -27,3 +27,9 @@ class Film(Model, UUIDMixin):
     directors: list[Person] = []
     actors_names: list[str] = []
     writers_names: list[str] = []
+
+
+class FilmShort(Model):
+    id: str
+    title: str
+    imdb_rating: float
