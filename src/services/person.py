@@ -58,7 +58,7 @@ class PersonService:
         }
         docs_actors = await self.elastic.search(index=self.movies_index_name, body=body_actor)
         count_movies_actor = docs_actors['hits']['total']['value']
-        movies_actor = [(movie['_source']['id'], movie['_source']['title']) for movie in docs_actors['hits']['hits']]
+        movies_actor = [movie['_source']['id'] for movie in docs_actors['hits']['hits']]
         return count_movies_actor, movies_actor
 
     async def _get_writers(self, person_id: str):
@@ -76,7 +76,7 @@ class PersonService:
         }
         docs_writes = await self.elastic.search(index="movies", body=body_writer)
         count_movies_writers = docs_writes['hits']['total']['value']
-        movies_writer = [(movie['_source']['id'], movie['_source']['title']) for movie in docs_writes['hits']['hits']]
+        movies_writer = [movie['_source']['id'] for movie in docs_writes['hits']['hits']]
         return count_movies_writers, movies_writer
 
     async def _get_directors(self, full_name: str):
@@ -89,7 +89,7 @@ class PersonService:
         }
         docs_director = await self.elastic.search(index="movies", body=body_director)
         count_movies_director = docs_director['hits']['total']['value']
-        movies_director = [(movie['_source']['id'], movie['_source']['title']) for movie in docs_director['hits']['hits']]
+        movies_director = [movie['_source']['id'] for movie in docs_director['hits']['hits']]
         return count_movies_director, movies_director
 
     async def _get_data_by_id_persons(self, person_id: str):
@@ -100,26 +100,23 @@ class PersonService:
         count_movies_actor, movies_actor = await self._get_actors(person_id)
         count_movies_writers, movies_writer = await self._get_writers(person_id)
         count_movies_director, movies_director = await self._get_directors(full_name)
-        data = {}
 
-        for role, films_info in zip(
-            ('actor', 'writer', 'director'),
-            (movies_actor, movies_writer, movies_director)
-        ):
+        person_films = []
+        for movie_id in set(movies_actor + movies_writer + movies_director):
+            person_films.append({'uuid': movie_id, 'roles': []})
 
-            for film_info in films_info:
-                logging.info(f"LOOOOOL {film_info}")
-                film_id, film_title = film_info
-                if film_id in data:
-                    data[film_id]['roles'].append(role)
-                else:
-                    data[film_id] = {'title': [], 'roles': []}
-                    data[film_id]['title'] = film_title
-                    data[film_id]['roles'] = [role]
+            if movie_id in movies_actor:
+                person_films[-1]['roles'].append('actor')
+
+            if movie_id in movies_writer:
+                person_films[-1]['roles'].append('writer')
+
+            if movie_id in movies_director:
+                person_films[-1]['roles'].append('director')
 
         return dict(
             **person['_source'],
-            data=data
+            films=person_films
         )
 
     async def _get_person_from_elastic(self, person_id: str) -> Optional[Person]:

@@ -15,7 +15,7 @@ class PersonDescription(BaseModel):
     """
     id: str
     full_name: str
-    data: Dict[str, Dict[str, list | str]]
+    films: list[Dict[str, list | str]]
 
 
 class FilmPerson(UUIDMixin, Film):

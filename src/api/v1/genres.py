@@ -3,7 +3,6 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.schemas import Film, FullFilm, Person, PersonDescription, FilmPerson
 from models.film import Genre
 from services.genre import GenreService, get_genre_service
 from constants import GenreSort
