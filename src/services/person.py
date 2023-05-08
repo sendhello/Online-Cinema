@@ -1,28 +1,28 @@
-import logging
 from functools import lru_cache
-from typing import Optional
 
 from redis.asyncio import Redis
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Person, FilmShort
-from constants import PersonSort
+
+from models.film import FilmShort
+from api.schemas.person import PersonDescription
+from services.base_entity import BaseEntity
 
 
-class PersonService:
+class PersonService(BaseEntity):
+    name = 'person'
     index_name = 'persons'
-    movies_index_name = 'movies'
 
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
+        super().__init__(elastic, self.name, self.index_name)
         self.redis = redis
-        self.elastic = elastic
 
     async def get_persons(self, **kwargs):
         # todo добавить кэширование
-        persons = await self._get_persons_from_elastic(**kwargs)
+        persons = await self.get_items_from_elastic(**kwargs)
         if not persons:
             return []
         return persons
@@ -33,15 +33,6 @@ class PersonService:
         if not persons:
             return []
         return persons
-
-    @staticmethod
-    async def _transform_doc_to_person(doc: dict) -> Person:
-        person = doc['_source'].get('person')
-        if person:
-            doc['_source']['person'] = [{'id': item, 'full_name': item} for item in person.split(' ')]
-        logging.info(f"privet {doc}")
-        result = Person(**doc['_source'])
-        return result
 
     async def _get_actors(self, person_id: str):
         body_actor = {
@@ -114,58 +105,16 @@ class PersonService:
             if movie_id in movies_director:
                 person_films[-1]['roles'].append('director')
 
-        return dict(
+        return PersonDescription(
             **person['_source'],
             films=person_films
         )
 
-    async def _get_person_from_elastic(self, person_id: str) -> Optional[Person]:
-        try:
-            doc = await self.elastic.get(index=self.index_name, id=person_id)
-        except NotFoundError:
-            return
-
-        person = doc['_source'].get('person')
-        if person and isinstance(person, str):
-            doc['_source']['person'] = [{'id': item, 'full_name': item} for item in person.split(' ')]
-        # return Person(**doc['_source'].dict(by_alias=True))
-        return Person(**doc['_source'])
-
-    @staticmethod
-    def _get_person_body(
-            query: str | None = None,
-            person_id: str | None = None
-    ) -> dict | None:
-        # todo utils
-        if person_id:
-            return {
-                'query': {
-                    'query_string': {
-                        'default_field': 'person',
-                        'query': person_id
-                    }
-                }
-            }
-
-        if query:
-            return {
-                'query': {
-                    'match': {
-                        'full_name': {
-                            'query': query,
-                            'fuzziness': 1,
-                            'operator': 'and',
-                            'analyzer': 'ru_en'
-                        }
-                    }
-                }
-            }
-
-    async def get_persons_film_by_id(self, person_id: str) -> list[FilmShort]:
+    async def _get_person_film(self, person_id: str, role: str) -> list:
         body = {
             "query": {
                 "nested": {
-                    "path": "actors",
+                    "path": role,
                     "query": {
                         "match": {
                             "actors.id": f"{person_id}"
@@ -174,43 +123,15 @@ class PersonService:
                 }
             }
         }
-        docs_actors = await self.elastic.search(index="movies", body=body)
-        logging.info(f"paket {[FilmShort(**movie['_source']) for movie in docs_actors['hits']['hits']]}")
-        return [FilmShort(**movie['_source']) for movie in docs_actors['hits']['hits']]
+        docs: dict = await self.elastic.search(index=self.movies_index_name, body=body)
+        return docs['hits'].get('hits')
 
-    async def _get_persons_from_elastic(
-            self,
-            page_size: int | None,
-            page_number: int | None,
-            sort: PersonSort | None = None,
-            person_id: str | None = None,
-            query: str | None = None,
-    ) -> Optional[list[Person]]:
+    async def get_person_films_by_id(self, person_id: str) -> list[FilmShort]:
+        films_info = []
+        for role in ('actors', 'writers'):
+            films_info.extend(await self._get_person_film(person_id, role))
 
-        body = self._get_person_body(query, person_id)
-
-        match sort:
-            case PersonSort.ID_UP:
-                sort = [{"id": "asc"}]
-            case PersonSort.ID_DOWN:
-                sort = [{"id": "desc"}]
-            case _:
-                sort = []
-        sort.append({"_score": "desc"})
-
-        try:
-            docs = await self.elastic.search(
-                index=self.index_name,
-                body=body,
-                params={
-                    'size': page_size,
-                    'from': page_number - 1,
-                    'sort': sort,
-                })
-        except NotFoundError:
-            return []
-
-        return [await self._transform_doc_to_person(doc) for doc in docs['hits']['hits']]
+        return [FilmShort(**movie['_source']) for movie in films_info]
 
 
 @lru_cache()

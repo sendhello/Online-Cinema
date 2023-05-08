@@ -1,4 +1,3 @@
-import logging
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -23,12 +22,11 @@ async def genre_list(
     """
 
     genres_es = await genre_service.get_genres(
-        genre_id=genre,
+        item_id=genre,
         page_size=page_size, page_number=page_number,
         sort=sort)
 
     genres = [Genre.parse_obj(genre.dict(by_alias=True)) for genre in genres_es]
-    logging.info(f"LOOL2, {genres}")
 
     return genres
 
