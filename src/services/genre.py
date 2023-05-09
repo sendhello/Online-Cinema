@@ -1,12 +1,11 @@
 from functools import lru_cache
 
-from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
+from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-
 from models.film import Genre
 from services.base_entity import BaseEntity
 
@@ -15,9 +14,13 @@ class GenreService(BaseEntity):
     name = 'genre'
     index_name = 'genres'
 
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch,):
-        super().__init__(elastic, self.name, self.index_name)
-        self.redis = redis
+    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
+        super().__init__(
+            redis=redis,
+            elastic=elastic,
+            entity_name=self.name,
+            index_name=self.index_name
+        )
 
     async def get_genres(self, **kwargs):
         # todo добавить кэширование

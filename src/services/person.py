@@ -1,14 +1,13 @@
 from functools import lru_cache
 
-from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
+from redis.asyncio import Redis
 
+from api.schemas.person import PersonDescription
 from db.elastic import get_elastic
 from db.redis import get_redis
-
 from models.film import FilmShort
-from api.schemas.person import PersonDescription
 from services.base_entity import BaseEntity
 
 
@@ -17,8 +16,12 @@ class PersonService(BaseEntity):
     index_name = 'persons'
 
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        super().__init__(elastic, self.name, self.index_name)
-        self.redis = redis
+        super().__init__(
+            redis=redis,
+            elastic=elastic,
+            entity_name=self.name,
+            index_name=self.index_name
+        )
 
     async def get_persons(self, **kwargs):
         # todo добавить кэширование

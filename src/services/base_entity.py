@@ -1,6 +1,10 @@
+from elasticsearch import AsyncElasticsearch, NotFoundError
+from redis.asyncio import Redis
+
 from constants import GenreSort, PersonSort
 from models.film import Genre, Person
-from elasticsearch import NotFoundError
+
+from . import BaseService
 
 ENTITIES_SETTINGS = {
     'genre': {
@@ -16,16 +20,17 @@ ENTITIES_SETTINGS = {
 }
 
 
-class BaseEntity:
+class BaseEntity(BaseService):
     movies_index_name = 'movies'
 
     def __init__(
             self,
-            elastic,
+            redis: Redis,
+            elastic: AsyncElasticsearch,
             entity_name: str,
             index_name: str,
     ):
-        self.elastic = elastic
+        super().__init__(redis, elastic)
         self.name = entity_name
         self.index_name = index_name
 

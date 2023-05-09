@@ -2,12 +2,11 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from services.person import PersonService, get_person_service
-from models.film import Person
-from constants import PersonSort
 from api.schemas.film import Film
 from api.schemas.person import PersonDescription
-
+from constants import PersonSort
+from models.film import Person
+from services.person import PersonService, get_person_service
 
 router = APIRouter()
 
@@ -20,7 +19,8 @@ async def person_list(
         person_id: str = Query(None),
         person_service: PersonService = Depends(get_person_service)
 ) -> list[Person]:
-    persons = await person_service.get_persons(page_size=page_size, page_number=page_number, sort=sort, item_id=person_id)
+    persons = await person_service.get_persons(
+        page_size=page_size, page_number=page_number, sort=sort, item_id=person_id)
     return [Person.parse_obj(person.dict(by_alias=True)) for person in persons]
 
 

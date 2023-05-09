@@ -17,4 +17,4 @@ class PersonSort(str, Enum):
 
 
 # Время кеширования в Redis
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
+CACHE_TIME = 60 * 5  # 5 минут

@@ -1,9 +1,9 @@
-from pydantic import Field, BaseModel
-
-from models.film import UUIDMixin
-from api.schemas.film import Film
 from typing import Dict
-from pydantic import Field
+
+from pydantic import BaseModel, Field
+
+from api.schemas.film import Film
+from models.film import UUIDMixin
 
 
 class Person(UUIDMixin):

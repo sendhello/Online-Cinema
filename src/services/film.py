@@ -9,19 +9,17 @@ from elasticsearch import AsyncElasticsearch, BadRequestError, NotFoundError
 from fastapi import Depends, HTTPException
 from redis.asyncio import Redis
 
-from constants import FILM_CACHE_EXPIRE_IN_SECONDS, FilmSort
+from constants import FilmSort
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.film import Film
 
+from . import BaseService
+
 logger = logging.getLogger(__name__)
 
 
-class FilmService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
-        self.elastic = elastic
-
+class FilmService(BaseService):
     async def filter(
             self,
             page_size: int,
@@ -125,10 +123,6 @@ class FilmService:
 
         return films
 
-    async def _put_to_cache(self, key, json_data: bytes):
-        logger.info(f'Запись результатов запроса в кеш: key = {key}')
-        await self.redis.set(key, json_data, FILM_CACHE_EXPIRE_IN_SECONDS)
-
     async def _put_film_to_cache(self, film: Film):
         key = f'film:{film.uuid}'
         await self._put_to_cache(key, film.json(by_alias=True))
@@ -136,14 +130,6 @@ class FilmService:
     async def _put_films_to_cache(self, key, films: list[Film]):
         data = [film.dict(by_alias=True) for film in films]
         await self._put_to_cache(key, orjson.dumps(data))
-
-    async def _get_from_cache(self, key) -> Optional[bytes]:
-        json_data = await self.redis.get(key)
-        if not json_data:
-            return None
-
-        logger.info(f'Получение данных из кеша: key = {key}')
-        return json_data
 
     async def _get_film_from_cache(self, film_id: str) -> Optional[Film]:
         key = f'film:{film_id}'

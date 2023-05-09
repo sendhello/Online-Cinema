@@ -1,3 +1,3 @@
 from .film import Film, FullFilm  # noqa
-from .genre import Genre
-from .person import Person, PersonDescription, FilmPerson
+from .genre import Genre  # noqa
+from .person import FilmPerson, Person, PersonDescription  # noqa
