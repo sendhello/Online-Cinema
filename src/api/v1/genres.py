@@ -11,8 +11,8 @@ router = APIRouter()
 
 @router.get('/', response_model=list[Genre])
 async def genre_list(
-        page_size: int = Query(50),
-        page_number: int = Query(1),
+        page_size: int = Query(50, ge=1),
+        page_number: int = Query(1, ge=1),
         sort: GenreSort | None = Query(None),
         genre: str = Query(None),
         genre_service: GenreService = Depends(get_genre_service)
@@ -33,8 +33,8 @@ async def genre_list(
 
 @router.get('/search', response_model=list[Genre])
 async def genre_search(
-    page_size: int = Query(50),
-    page_number: int = Query(1),
+    page_size: int = Query(50, ge=1),
+    page_number: int = Query(1, ge=1),
     sort: GenreSort | None = Query(None),
     query: str | None = Query(None),
     genre_service: GenreService = Depends(get_genre_service)
