@@ -9,7 +9,13 @@ from services.film import FilmService, get_film_service
 router = APIRouter()
 
 
-@router.get('', response_model=list[Film])
+@router.get(
+    '',
+    response_model=list[Film],
+    summary="Список фильмов",
+    description="Список фильмов с пагинацией, возможностью сортировки по рейтингу фильма "
+                "и возможностью фильтрации по жанрам",
+)
 async def films(
         sort: FilmSort | None = None,
         genre: str | None = None,
@@ -25,7 +31,13 @@ async def films(
     return returned_films
 
 
-@router.get('/search', response_model=list[Film])
+@router.get(
+    '/search',
+    response_model=list[Film],
+    summary="Поиск по фильмам",
+    description="Полнотекстовый поиск по фильмам. "
+                "Ищет по полям 'title', 'description', 'actors_names', 'director', 'writers_names' и 'genre'",
+)
 async def film_search(
         query: str | None = None,
         page_size: int = 50,
@@ -41,7 +53,12 @@ async def film_search(
 
 
 # Внедряем FilmService с помощью Depends(get_film_service)
-@router.get('/{film_id}', response_model=FullFilm)
+@router.get(
+    '/{film_id}',
+    response_model=FullFilm,
+    summary="Фильма по ID",
+    description="Получение польной информации по фильму по его ID",
+)
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FullFilm:
     """Страница фильма.
     """

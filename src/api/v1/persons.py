@@ -11,7 +11,12 @@ from services.person import PersonService, get_person_service
 router = APIRouter()
 
 
-@router.get('/', response_model=list[Person])
+@router.get(
+    '/',
+    response_model=list[Person],
+    summary="Список персон",
+    description="Получения списка всех персон",
+)
 async def person_list(
         page_size: int = Query(50),
         page_number: int = Query(1),
@@ -24,7 +29,12 @@ async def person_list(
     return [Person.parse_obj(person.dict(by_alias=True)) for person in persons]
 
 
-@router.get('/search', response_model=list[Person])
+@router.get(
+    '/search',
+    response_model=list[Person],
+    summary="Поиск по персонам",
+    description="Полнотекстовый поиск по персонам",
+)
 async def person_search(
         page_size: int = Query(10),
         page_number: int = Query(1),
@@ -36,7 +46,14 @@ async def person_search(
     return [Person.parse_obj(person.dict(by_alias=True)) for person in persons]
 
 
-@router.get('/{person_id}', response_model=PersonDescription)
+@router.get(
+    '/{person_id}',
+    response_model=PersonDescription,
+    summary="Персона по ID",
+    description="Получение персоны по ее ID. "
+                "Помимо самой персоны выдает список ID фильмов, в которой эта персона участвовала, "
+                "а также какую роль имела в том или ином фильме",
+)
 async def person_details(person_id: str,
                          person_service: PersonService = Depends(get_person_service)
                          ) -> PersonDescription:
@@ -46,7 +63,12 @@ async def person_details(person_id: str,
     return PersonDescription.parse_obj(person.dict(by_alias=True))
 
 
-@router.get('/{person_id}/film', response_model=list[Film])
+@router.get(
+    '/{person_id}/film',
+    response_model=list[Film],
+    summary="Фильм по ID персоны",
+    description="Получение фильма по ID персоны",
+)
 async def list_film_by_person(
         person_id: str,
         person_service: PersonService = Depends(get_person_service)
