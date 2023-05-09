@@ -1,25 +1,25 @@
-import pickle
+import logging
 from functools import lru_cache
 from http import HTTPStatus
 from typing import Optional
-from uuid import UUID
 
 import jmespath
+import orjson
 from elasticsearch import AsyncElasticsearch, BadRequestError, NotFoundError
 from fastapi import Depends, HTTPException
 from redis.asyncio import Redis
 
-from constants import FILM_CACHE_EXPIRE_IN_SECONDS, FilmSort
+from constants import FilmSort
 from db.elastic import get_elastic
 from db.redis import get_redis
 from models.film import Film
 
+from . import BaseService
 
-class FilmService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
-        self.elastic = elastic
+logger = logging.getLogger(__name__)
 
+
+class FilmService(BaseService):
     async def filter(
             self,
             page_size: int,
@@ -28,9 +28,8 @@ class FilmService:
             genre: str | None = None,
             query: str | None = None,
     ) -> list[Film]:
-        # TODO: реализовать кеширование
-        # films = await self._films_from_cache()
-        films = None  # заглушка
+        key = f'filter:{page_size}-{page_number}-{sort}-{genre}-{query}'
+        films = await self._get_films_from_cache(key)
 
         if not films:
             films = await self._get_films_from_elastic(
@@ -41,12 +40,12 @@ class FilmService:
                 page_number=page_number,
             )
 
-            # await self._put_films_to_cache(films)
+            await self._put_films_to_cache(key, films)
 
         return films
 
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = await self._film_from_cache(film_id)
+        film = await self._get_film_from_cache(film_id)
 
         if not film:
             film = await self._get_film_from_elastic(film_id)
@@ -124,28 +123,30 @@ class FilmService:
 
         return films
 
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
+    async def _put_film_to_cache(self, film: Film):
+        key = f'film:{film.uuid}'
+        await self._put_to_cache(key, film.json(by_alias=True))
+
+    async def _put_films_to_cache(self, key, films: list[Film]):
+        data = [film.dict(by_alias=True) for film in films]
+        await self._put_to_cache(key, orjson.dumps(data))
+
+    async def _get_film_from_cache(self, film_id: str) -> Film | None:
+        key = f'film:{film_id}'
+        data = await self._get_from_cache(key)
         if not data:
             return None
 
-        # pydantic предоставляет удобное API для создания объекта моделей из json
         film = Film.parse_raw(data)
         return film
 
-    async def _films_from_cache(self) -> list[Film]:
-        data = await self.redis.get('all_movies')
+    async def _get_films_from_cache(self, key) -> list[Film]:
+        data = await self._get_from_cache(key)
         if not data:
             return []
 
-        films = [Film.parse_obj(film_raw) for film_raw in pickle.loads(data)]
+        films = [Film.parse_obj(film_raw) for film_raw in orjson.loads(data)]
         return films
-
-    async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(film.uuid, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
-
-    async def _put_films_to_cache(self, films: list[Film]):
-        await self.redis.set('all_films', pickle.dumps([film.dict() for film in films]), FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()

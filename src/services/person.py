@@ -1,14 +1,14 @@
 from functools import lru_cache
 
-from redis.asyncio import Redis
+import orjson
 from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
+from redis.asyncio import Redis
 
+from api.schemas.person import PersonDescription
 from db.elastic import get_elastic
 from db.redis import get_redis
-
-from models.film import FilmShort
-from api.schemas.person import PersonDescription
+from models.film import FilmShort, Person
 from services.base_entity import BaseEntity
 
 
@@ -17,22 +17,35 @@ class PersonService(BaseEntity):
     index_name = 'persons'
 
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        super().__init__(elastic, self.name, self.index_name)
-        self.redis = redis
+        super().__init__(
+            redis=redis,
+            elastic=elastic,
+            entity_name=self.name,
+            index_name=self.index_name
+        )
 
     async def get_persons(self, **kwargs):
-        # todo добавить кэширование
-        persons = await self.get_items_from_elastic(**kwargs)
+        key = f"persons:{'-'.join(str(val) for val in kwargs.values())}"
+        persons = await self._get_persons_from_cache(key)
+
         if not persons:
-            return []
+            persons = await self.get_items_from_elastic(**kwargs)
+
+            await self._put_persons_to_cache(key, persons)
+
         return persons
 
     async def get_person_by_id(self, person_id):
-        # todo добавить кэширование
-        persons = await self._get_data_by_id_persons(person_id)
-        if not persons:
-            return []
-        return persons
+        person = await self._get_person_from_cache(person_id)
+
+        if not person:
+            person = await self._get_data_by_id_persons(person_id)
+            if not person:
+                return None
+
+            await self._put_person_to_cache(person)
+
+        return person
 
     async def _get_actors(self, person_id: str):
         body_actor = {
@@ -110,7 +123,7 @@ class PersonService(BaseEntity):
             films=person_films
         )
 
-    async def _get_person_film(self, person_id: str, role: str) -> list:
+    async def _get_person_film(self, person_id: str, role: str) -> list[FilmShort]:
         body = {
             "query": {
                 "nested": {
@@ -124,14 +137,59 @@ class PersonService(BaseEntity):
             }
         }
         docs: dict = await self.elastic.search(index=self.movies_index_name, body=body)
-        return docs['hits'].get('hits')
+        hits = docs['hits'].get('hits')
+        return [FilmShort(**hit['_source']) for hit in hits]
 
     async def get_person_films_by_id(self, person_id: str) -> list[FilmShort]:
-        films_info = []
-        for role in ('actors', 'writers'):
-            films_info.extend(await self._get_person_film(person_id, role))
+        key = f"person_films:{person_id}"
+        films = await self._get_films_from_cache(key)
 
-        return [FilmShort(**movie['_source']) for movie in films_info]
+        if not films:
+            films = [
+                await self._get_person_film(person_id, role)
+                for role in ('actors', 'writers')
+            ]
+
+        await self._put_films_to_cache(films)
+
+        return films
+
+    async def _put_person_to_cache(self, person: Person):
+        key = f'person:{person.uuid}'
+        await self._put_to_cache(key, person.json(by_alias=True))
+
+    async def _put_persons_to_cache(self, key, persons: list[Person]):
+        data = [person.dict(by_alias=True) for person in persons]
+        await self._put_to_cache(key, orjson.dumps(data))
+
+    async def _put_films_to_cache(self, key, films: list[FilmShort]):
+        data = [film.dict(by_alias=True) for film in films]
+        await self._put_to_cache(key, orjson.dumps(data))
+
+    async def _get_person_from_cache(self, person_id: str) -> Person | None:
+        key = f'person:{person_id}'
+        data = await self._get_from_cache(key)
+        if data is None:
+            return None
+
+        person = Person.parse_raw(data)
+        return person
+
+    async def _get_persons_from_cache(self, key) -> list[Person] | None:
+        data = await self._get_from_cache(key)
+        if data is None:
+            return None
+
+        persons = [Person.parse_obj(person_raw) for person_raw in orjson.loads(data)]
+        return persons
+
+    async def _get_films_from_cache(self, key) -> list[FilmShort] | None:
+        data = await self._get_from_cache(key)
+        if data is None:
+            return None
+
+        films = [FilmShort.parse_obj(person_raw) for person_raw in orjson.loads(data)]
+        return films
 
 
 @lru_cache()
