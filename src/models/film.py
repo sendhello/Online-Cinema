@@ -1,10 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from . import Model
-
-
-class UUIDMixin(BaseModel):
-    uuid: str = Field(alias='id')
+from . import Model, UUIDMixin
 
 
 class Genre(Model, UUIDMixin):
@@ -12,7 +8,7 @@ class Genre(Model, UUIDMixin):
 
 
 class Person(Model, UUIDMixin):
-    full_name: str
+    full_name: str = Field(alias='name')
 
 
 class Film(Model, UUIDMixin):

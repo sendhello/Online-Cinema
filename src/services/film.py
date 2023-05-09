@@ -131,7 +131,7 @@ class FilmService(BaseService):
         data = [film.dict(by_alias=True) for film in films]
         await self._put_to_cache(key, orjson.dumps(data))
 
-    async def _get_film_from_cache(self, film_id: str) -> Optional[Film]:
+    async def _get_film_from_cache(self, film_id: str) -> Film | None:
         key = f'film:{film_id}'
         data = await self._get_from_cache(key)
         if not data:
