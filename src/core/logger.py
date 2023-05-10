@@ -1,17 +1,24 @@
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOG_DEFAULT_HANDLERS = ['console', ]
+from pydantic import BaseSettings, Field
 
-# В логгере настраивается логгирование uvicorn-сервера.
-# Про логирование в Python можно прочитать в документации
-# https://docs.python.org/3/howto/logging.html
-# https://docs.python.org/3/howto/logging-cookbook.html
+
+class LoggingSettings(BaseSettings):
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_default_handlers = ['console', ]
+
+    log_level_handlers = Field('DEBUG', env='LOG_LEVEL_HANDLERS')
+    log_level_loggers = Field('INFO', env='LOG_LEVEL_LOGGERS')
+    log_level_root = Field('INFO', env='LOG_LEVEL_ROOT')
+
+
+log_settings = LoggingSettings()
+
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': LOG_FORMAT
+            'format': log_settings.log_format
         },
         'default': {
             '()': 'uvicorn.logging.DefaultFormatter',
@@ -25,7 +32,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': log_settings.log_level_handlers,
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
@@ -42,21 +49,21 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': LOG_DEFAULT_HANDLERS,
-            'level': 'INFO',
+            'handlers': log_settings.log_default_handlers,
+            'level': log_settings.log_level_loggers,
         },
         'uvicorn.error': {
-            'level': 'INFO',
+            'level': log_settings.log_level_loggers,
         },
         'uvicorn.access': {
             'handlers': ['access'],
-            'level': 'INFO',
+            'level': log_settings.log_level_loggers,
             'propagate': False,
         },
     },
     'root': {
-        'level': 'INFO',
+        'level': log_settings.log_level_root,
         'formatter': 'verbose',
-        'handlers': LOG_DEFAULT_HANDLERS,
+        'handlers': log_settings.log_default_handlers,
     },
 }
