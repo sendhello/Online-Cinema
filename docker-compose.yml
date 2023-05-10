@@ -88,6 +88,20 @@ services:
     depends_on:
       - etl
 
+  nginx:
+    container_name: nginx
+    hostname: nginx
+    image: nginx:1.19.2
+    volumes:
+      - ./src/nginx.conf:/etc/nginx/nginx.conf
+      - ./src/configs:/etc/nginx/conf.d
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    networks:
+      - network
+
 volumes:
   pgdata:
   redis_data:
