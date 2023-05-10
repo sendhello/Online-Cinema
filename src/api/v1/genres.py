@@ -9,7 +9,12 @@ from services.genre import GenreService, get_genre_service
 router = APIRouter()
 
 
-@router.get('/', response_model=list[Genre])
+@router.get(
+    '/',
+    response_model=list[Genre],
+    summary="Список жанров",
+    description="Получение списка всех жанров",
+)
 async def genre_list(
         page_size: int = Query(50),
         page_number: int = Query(1),
@@ -31,7 +36,12 @@ async def genre_list(
     return genres
 
 
-@router.get('/search', response_model=list[Genre])
+@router.get(
+    '/search',
+    response_model=list[Genre],
+    summary="Поиск по жанрам",
+    description="Полнотекстовый поиск по жанрам.",
+)
 async def genre_search(
     page_size: int = Query(50),
     page_number: int = Query(1),
@@ -44,7 +54,12 @@ async def genre_search(
     return [Genre.parse_obj(genre.dict(by_alias=True)) for genre in genres]
 
 
-@router.get('/{genre_id}', response_model=Genre)
+@router.get(
+    '/{genre_id}',
+    response_model=Genre,
+    summary="Жанр по ID",
+    description="Получение жанра по его ID",
+)
 async def genre_info(
         genre_id: str,
         genre_service: GenreService = Depends(get_genre_service)
