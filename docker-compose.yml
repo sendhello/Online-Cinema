@@ -8,8 +8,8 @@ services:
     image: postgres:15.2
     networks:
       - network
-    ports:
-      - "5435:5432"
+    expose:
+      - "5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -32,8 +32,8 @@ services:
       xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
+    expose:
+      - "9200"
     networks:
       - network
 
@@ -45,8 +45,8 @@ services:
       ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
     volumes:
       - redis_data:/data
-    ports:
-      - "6377:6379"
+    expose:
+      - "6379"
     networks:
       - network
 
@@ -83,8 +83,8 @@ services:
       REDIS_PORT: ${REDIS_PORT}
     networks:
       - network
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
       - etl
 
