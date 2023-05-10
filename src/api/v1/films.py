@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas import Film, FullFilm
 from constants import FilmSort
@@ -19,8 +19,8 @@ router = APIRouter()
 async def films(
         sort: FilmSort | None = None,
         genre: str | None = None,
-        page_size: int = 50,
-        page_number: int = 1,
+        page_size: int = Query(50, ge=1),
+        page_number: int = Query(1, ge=1),
         film_service: FilmService = Depends(get_film_service)
 ) -> list[Film]:
     """Список фильмов.
@@ -40,8 +40,8 @@ async def films(
 )
 async def film_search(
         query: str | None = None,
-        page_size: int = 50,
-        page_number: int = 1,
+        page_size: int = Query(50, ge=1),
+        page_number: int = Query(1, ge=1),
         film_service: FilmService = Depends(get_film_service)
 ) -> list[Film]:
     """Поиск по фильмам.

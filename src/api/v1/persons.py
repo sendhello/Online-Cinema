@@ -18,8 +18,8 @@ router = APIRouter()
     description="Получения списка всех персон",
 )
 async def person_list(
-        page_size: int = Query(50),
-        page_number: int = Query(1),
+        page_size: int = Query(50, ge=1),
+        page_number: int = Query(1, ge=1),
         sort: PersonSort | None = Query(None),
         person_id: str = Query(None),
         person_service: PersonService = Depends(get_person_service)
@@ -36,8 +36,8 @@ async def person_list(
     description="Полнотекстовый поиск по персонам",
 )
 async def person_search(
-        page_size: int = Query(10),
-        page_number: int = Query(1),
+        page_size: int = Query(50, ge=1),
+        page_number: int = Query(1, ge=1),
         sort: PersonSort | None = Query(None),
         query: str = Query(None),
         person_service: PersonService = Depends(get_person_service)
