@@ -5,10 +5,11 @@ from elasticsearch import AsyncElasticsearch
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from api.schemas.person import PersonDescription
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import FilmShort, Person
+
+from models.film import FilmShort
+from models.person import Person, PersonDescription, PersonFilm
 from services.base_entity import BaseEntity
 
 
@@ -117,7 +118,7 @@ class PersonService(BaseEntity):
 
             if movie_id in movies_director:
                 person_films[-1]['roles'].append('director')
-
+            person_films[-1] = PersonFilm(**person_films[-1])
         return PersonDescription(
             **person['_source'],
             films=person_films
@@ -140,21 +141,24 @@ class PersonService(BaseEntity):
         hits = docs['hits'].get('hits')
         return [FilmShort(**hit['_source']) for hit in hits]
 
+    async def get_persons_films_from_es(self, person_id: str) -> list[FilmShort]:
+        films = []
+        for role in ('actors', 'writers'):
+            films.extend(await self._get_person_film(person_id, role))
+        return films
+
     async def get_person_films_by_id(self, person_id: str) -> list[FilmShort]:
         key = f"person_films:{person_id}"
         films = await self._get_films_from_cache(key)
 
         if not films:
-            films = [
-                await self._get_person_film(person_id, role)
-                for role in ('actors', 'writers')
-            ]
+            films = await self.get_persons_films_from_es(person_id)
 
-        await self._put_films_to_cache(films)
+        await self._put_films_to_cache(key, films=films)
 
         return films
 
-    async def _put_person_to_cache(self, person: Person):
+    async def _put_person_to_cache(self, person: Person | PersonDescription):
         key = f'person:{person.uuid}'
         await self._put_to_cache(key, person.json(by_alias=True))
 

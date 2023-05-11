@@ -1,14 +1,8 @@
-from pydantic import Field
-
 from . import Model, UUIDMixin
 
 
-class Genre(Model, UUIDMixin):
-    name: str
-
-
 class Person(Model, UUIDMixin):
-    full_name: str = Field(alias='name')
+    name: str
 
 
 class Film(Model, UUIDMixin):

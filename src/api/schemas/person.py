@@ -1,23 +1,22 @@
-from typing import Dict
-
 from pydantic import BaseModel, Field
 
-from api.schemas.film import Film
-from models.film import UUIDMixin
+
+class UUIDMixin(BaseModel):
+    uuid: str = Field(alias='id')
 
 
 class Person(UUIDMixin):
     full_name: str
 
 
-class PersonDescription(BaseModel):
+class PersonFilm(BaseModel):
+    uuid: str
+    roles: list[str]
+
+
+class PersonDescription(UUIDMixin):
     """
     /api/v1/persons/<uuid:UUID>/
     """
-    uuid: str = Field(alias='id')
     full_name: str
-    films: list[Dict[str, list | str]]
-
-
-class FilmPerson(UUIDMixin, Film):
-    pass
+    films: list[PersonFilm]
