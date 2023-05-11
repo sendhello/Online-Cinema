@@ -2,8 +2,8 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from constants import GenreSort
 from api.schemas.genre import Genre
+from constants import GenreSort
 from services.genre import GenreService, get_genre_service
 
 router = APIRouter()

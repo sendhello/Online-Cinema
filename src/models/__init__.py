@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import orjson
 from pydantic import BaseModel, Field
 
@@ -16,4 +18,4 @@ class Model(BaseModel):
 
 
 class UUIDMixin(BaseModel):
-    uuid: str = Field(alias='id')
+    uuid: UUID = Field(alias='id')
