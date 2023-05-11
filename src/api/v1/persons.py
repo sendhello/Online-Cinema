@@ -3,9 +3,9 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas.film import Film
-from api.schemas.person import PersonDescription
+from api.schemas.person import Person, PersonDescription
 from constants import PersonSort
-from models.person import Person
+
 from services.person import PersonService, get_person_service
 
 router = APIRouter()

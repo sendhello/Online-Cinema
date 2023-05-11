@@ -119,6 +119,7 @@ class FilmService(BaseService):
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=error_message)
 
         hits = response.get('hits', {}).get('hits', [])
+        logging.info(hits[0]['_source'])
         films = [Film(**hit['_source']) for hit in hits]
 
         return films

@@ -1,8 +1,11 @@
+import logging
+
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from redis.asyncio import Redis
 
 from constants import GenreSort, PersonSort
-from models.film import Genre, Person
+from models.genre import Genre
+from models.person import Person
 
 from . import BaseService
 
@@ -83,6 +86,7 @@ class BaseEntity(BaseService):
         item = doc['_source'].get(self.name)
         if item:
             doc['_source']['person'] = [{'id': item, self.title_field_name: item_} for item_ in item.split(' ')]
+        logging.info(doc['_source'])
         result = self.model_class(**doc['_source'])
         return result
 
