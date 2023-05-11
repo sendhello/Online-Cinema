@@ -7,7 +7,6 @@ from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-
 from models.genre import Genre
 from services.base_entity import BaseEntity
 

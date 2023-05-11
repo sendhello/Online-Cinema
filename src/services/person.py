@@ -7,7 +7,6 @@ from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-
 from models.film import FilmShort
 from models.person import Person, PersonDescription, PersonFilm
 from services.base_entity import BaseEntity
