@@ -30,7 +30,7 @@ class FilmService(BaseService):
         key = f'filter:{page_size}-{page_number}-{sort}-{genre}-{query}'
         data = await self.cache.get_from_cache(key)
         if data is not None:
-            entities = [Film.parse_obj(raw_entity) for raw_entity in orjson.loads(data)]
+            entities = [self.request.model.parse_obj(raw_entity) for raw_entity in orjson.loads(data)]
 
         else:
             queries = []
