@@ -1,0 +1,63 @@
+version: '3.3'
+services:
+  fastapi_test:
+    container_name: fastapi_test
+    image: fastapi-image
+    build: ../../src
+    ports:
+      - "8000:8000"
+    depends_on:
+      - elasticsearch_test
+      - redis_test
+
+  tests:
+    container_name: tests
+    image: fastapi-image
+    volumes:
+      - ../../tests:/tests
+    environment:
+      - PYTHONPATH=/tests/functional:/tests
+    entrypoint: >
+      sh -c "pip install -r /tests/functional/requirements.txt
+      && python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest /tests/functional/src"
+
+    depends_on:
+      - fastapi_test
+      - elasticsearch_test
+
+  elasticsearch_test:
+    container_name: elasticsearch_test
+    hostname: elasticsearch
+    image: ghcr.io/yp-middle-python-24/elasticsearch:8.7.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - network_test
+
+  redis_test:
+    container_name: redis_test
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+        ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6377:6379"
+    networks:
+      - network_test
+
+volumes:
+  pgdata:
+  redis_data:
+  elasticsearch_data:
+
+networks:
+  network_test:
