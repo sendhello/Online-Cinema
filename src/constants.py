@@ -6,14 +6,17 @@ class FilmSort(str, Enum):
     RATING_DOWN = '-imdb_rating'
 
 
-class GenreSort(str, Enum):
-    ID_UP = 'id'
-    ID_DOWN = '-id'
+class Index(str, Enum):
+    """Индексы в Elastic DB.
+    """
+    MOVIES = 'movies'
+    GENRES = 'genres'
+    PERSONS = 'persons'
 
 
-class PersonSort(str, Enum):
-    ID_UP = 'id'
-    ID_DOWN = '-id'
+class QueryType(str, Enum):
+    MATCH = 'match'
+    MULTI_MATCH = 'multi_match'
 
 
 # Время кеширования в Redis
