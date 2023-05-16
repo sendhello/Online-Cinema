@@ -1,29 +1,25 @@
 import logging
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
+from pydantic import BaseModel
 from redis.asyncio import Redis
 
-from constants import GenreSort, PersonSort
 from models.genre import Genre
 from models.person import Person
-
-from . import BaseService
 
 ENTITIES_SETTINGS = {
     'genre': {
         'title_field_name': 'name',
         'model_class': Genre,
-        'model_class_sort': GenreSort,
     },
     'person': {
         'title_field_name': 'full_name',
         'model_class': Person,
-        'model_class_sort': PersonSort,
     },
 }
 
 
-class BaseEntity(BaseService):
+class BaseEntity(BaseModel):
     movies_index_name = 'movies'
 
     def __init__(

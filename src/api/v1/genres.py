@@ -3,7 +3,6 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas.genre import Genre
-from constants import GenreSort
 from services.genre import GenreService, get_genre_service
 
 router = APIRouter()
@@ -18,7 +17,6 @@ router = APIRouter()
 async def genre_list(
         page_size: int = Query(50, ge=1),
         page_number: int = Query(1, ge=1),
-        sort: GenreSort | None = Query(None),
         genre: str = Query(None),
         genre_service: GenreService = Depends(get_genre_service)
 ) -> list[Genre]:
@@ -45,7 +43,6 @@ async def genre_list(
 async def genre_search(
     page_size: int = Query(50, ge=1),
     page_number: int = Query(1, ge=1),
-    sort: GenreSort | None = Query(None),
     query: str | None = Query(None),
     genre_service: GenreService = Depends(get_genre_service)
 ) -> list[Genre]:

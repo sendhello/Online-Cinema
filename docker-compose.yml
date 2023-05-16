@@ -81,6 +81,8 @@ services:
       ES_PORT: ${ES_PORT}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      LOG_LEVEL_LOGGERS: ${LOG_LEVEL_LOGGERS}
+      LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT}
     networks:
       - network
     expose:

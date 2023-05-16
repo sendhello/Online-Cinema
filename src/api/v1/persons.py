@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas.film import Film
 from api.schemas.person import Person, PersonDescription
-from constants import PersonSort
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
@@ -19,7 +18,6 @@ router = APIRouter()
 async def person_list(
         page_size: int = Query(50, ge=1),
         page_number: int = Query(1, ge=1),
-        sort: PersonSort | None = Query(None),
         person_id: str = Query(None),
         person_service: PersonService = Depends(get_person_service)
 ) -> list[Person]:
@@ -37,7 +35,6 @@ async def person_list(
 async def person_search(
         page_size: int = Query(50, ge=1),
         page_number: int = Query(1, ge=1),
-        sort: PersonSort | None = Query(None),
         query: str = Query(None),
         person_service: PersonService = Depends(get_person_service)
 ) -> list[Person]:
