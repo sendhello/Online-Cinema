@@ -1,15 +1,20 @@
 import asyncio
-from elasticsearch import AsyncElasticsearch
-from functional.settings import test_settings, SLEEP_TIME
+import backoff
+
+from elasticsearch import AsyncElasticsearch, ConnectionError
+from functional.settings import test_settings, backoff_settings
 
 
-async def wait_for_es(sleep_time: int = 2):
+@backoff.on_exception(
+    **backoff_settings.dict(),
+    exception=ConnectionError,
+)
+async def wait_for_es():
     es_client = AsyncElasticsearch(hosts=test_settings.get_es_hosts())
 
-    while True:
-        if await es_client.ping():
-            break
-        await asyncio.sleep(sleep_time)
+    if not await es_client.ping():
+        raise ConnectionError('Connect to elasticsearch is failed.')
+    return es_client
 
 if __name__ == '__main__':
-    asyncio.run(wait_for_es(sleep_time=SLEEP_TIME))
+    asyncio.run(wait_for_es())

@@ -1,17 +1,23 @@
 version: '3.3'
 services:
-  fastapi_test:
-    container_name: fastapi_test
-    image: fastapi-image
+  fastapi:
+    container_name: fastapi
+    hostname: fastapi
     build: ../../src
+    environment:
+      PROJECT_NAME: ${PROJECT_NAME}
+      ES_HOST: "elasticsearch"
+      ES_PORT: ${ES_PORT}
+      REDIS_HOST: "redis"
+      REDIS_PORT: ${REDIS_PORT}
+    networks:
+      - network
     ports:
       - "8000:8000"
-    depends_on:
-      - elasticsearch_test
-      - redis_test
 
   tests:
     container_name: tests
+    hostname: tests
     image: fastapi-image
     volumes:
       - ../../tests:/tests
@@ -21,38 +27,39 @@ services:
       sh -c "pip install -r /tests/functional/requirements.txt
       && python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
-      && pytest /tests/functional/src"
-
+      && pytest -vv /tests/functional/src"
+    networks:
+      - network
     depends_on:
-      - fastapi_test
-      - elasticsearch_test
+      - fastapi
+      - elasticsearch
 
-  elasticsearch_test:
-    container_name: elasticsearch_test
+  elasticsearch:
+    container_name: elasticsearch
     hostname: elasticsearch
-    image: ghcr.io/yp-middle-python-24/elasticsearch:8.7.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
     environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
+      discovery.type: ${DISCOVERY_TYPE}
+      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     networks:
-      - network_test
+      - network
 
-  redis_test:
-    container_name: redis_test
+  redis:
+    container_name: redis
     hostname: redis
     image: redis:7.2-rc1
     environment:
         ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
     volumes:
       - redis_data:/data
-    ports:
-      - "6377:6379"
+    expose:
+      - "6379"
     networks:
-      - network_test
+      - network
 
 volumes:
   pgdata:
@@ -60,4 +67,4 @@ volumes:
   elasticsearch_data:
 
 networks:
-  network_test:
+  network:
