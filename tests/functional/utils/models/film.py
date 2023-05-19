@@ -1,11 +1,11 @@
-from functional.utils.models.base_models import UUIDMixin
+from functional.utils.models.base_models import IDMixin
 
 
-class PersonName(UUIDMixin):
+class PersonName(IDMixin):
     name: str
 
 
-class Film(UUIDMixin):
+class Film(IDMixin):
     """Модель фильма из БД.
     """
     title: str
@@ -17,3 +17,4 @@ class Film(UUIDMixin):
     director: list[PersonName] = []
     actors_names: list[str] = []
     writers_names: list[str] = []
+

@@ -8,4 +8,8 @@ class HTTPResponse(BaseModel):
 
 
 class UUIDMixin(BaseModel):
+    uuid: str
+
+
+class IDMixin(BaseModel):
     id: str
