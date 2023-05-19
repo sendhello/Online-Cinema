@@ -1,13 +1,13 @@
 import logging
-from enum import Enum
 from http import HTTPStatus
+from uuid import UUID
 
 import jmespath
 from elasticsearch import AsyncElasticsearch, BadRequestError, ConnectionError, NotFoundError
 from fastapi import HTTPException
 from pydantic import BaseModel, Field, validator
 
-from constants import Index, QueryType
+from constants import Index, LogicType, QueryType
 from models.film import Film
 from models.genre import Genre
 from models.person import Person
@@ -25,12 +25,13 @@ ModelMap = {
 }
 
 
-class Query(BaseModel):
+class QueryFilter(BaseModel):
     """Модель запроса для поиска.
     """
     type: QueryType = Field(title='Тип поиска')
     query: str = Field(title='Текст запроса')
     fields: list[str] = Field(title='Список полей для поиска')
+    fields_type: LogicType = Field(LogicType.MUST, title='Тип логики между полями')
 
     @validator('fields')
     def validate_fields(cls, val: list[str]) -> list[str]:
@@ -40,6 +41,65 @@ class Query(BaseModel):
             raise ValueError('Поле fields не может быть пустым списком')
 
         return val
+
+
+class Query(dict):
+    def __init__(self, seq=None, **kwargs):
+        super().__init__(self, seq=None, **kwargs)
+
+        self.update({'match_all': {}})
+        self.pop('seq', None)
+
+    def append_filter(self, query_filter: QueryFilter):
+        self.pop('match_all', None)
+        bool_ = self.setdefault('bool', {})
+        must = bool_.setdefault('must', [])
+
+        if query_filter.type == QueryType.MULTI_MATCH:
+            must.append({
+                'multi_match': {
+                    'query': query_filter.query,
+                    'fields': query_filter.fields,
+                    'fuzziness': 'auto',
+                }
+            })
+
+        should_filter = {}
+        if query_filter.fields_type == LogicType.MUST:
+            filters = must
+
+        elif query_filter.fields_type == LogicType.SHOULD:
+            bool_ = should_filter.setdefault('bool', {})
+            filters = bool_.setdefault('should', [])
+
+        else:
+            raise ValueError('Field fields_type not correct')
+
+        if query_filter.type == QueryType.MATCH:
+            filters.extend([
+                {
+                    'match': {
+                        field: query_filter.query
+                    }
+                } for field in query_filter.fields
+            ])
+
+        if query_filter.type == QueryType.NESTED:
+            filters.extend(
+                {
+                    'nested': {
+                        'path': field.split('.')[0],
+                        'query': {
+                            'match': {
+                                field: query_filter.query,
+                            }
+                        },
+                    }
+                } for field in query_filter.fields
+            )
+
+        if should_filter:
+            must.append(should_filter)
 
 
 class ElasticRequest(AbstractDBRequest):
@@ -53,7 +113,7 @@ class ElasticRequest(AbstractDBRequest):
 
         self.model = model
 
-    async def get_by_id(self, id_: str) -> ModelType | None:
+    async def get_by_id(self, id_: UUID) -> ModelType | None:
         """Метод получения объекта по id.
         """
         try:
@@ -76,39 +136,13 @@ class ElasticRequest(AbstractDBRequest):
         :arg page_number - пагинация: номер страницы
         """
         sort_texts: list[str] | None = kwargs.get('sort_texts')
-        queries: list[Query] | None = kwargs.get('queries')
+        filters: list[QueryFilter] | None = kwargs.get('filters')
         size: int = kwargs.get('size')
         page_number: int = kwargs.get('page_number')
 
-        if queries:
-            must = []
-            for query in queries:
-                if query.type == QueryType.MULTI_MATCH:
-                    must.append({
-                        'multi_match': {
-                            "query": query.query,
-                            "fields": query.fields,
-                            "fuzziness": "auto"
-                        }
-                    })
-
-                if query.type == QueryType.MATCH:
-                    must.extend(
-                        {
-                            'match': {
-                                field: query.query
-                            }
-                        } for field in query.fields
-                    )
-
-            query = {
-                "bool": {
-                    "must": must
-                }
-            }
-
-        else:
-            query = {'match_all': {}}
+        query = Query()
+        for query_filter in filters or []:
+            query.append_filter(query_filter)
 
         sort = []
         for sort_text in sort_texts or []:

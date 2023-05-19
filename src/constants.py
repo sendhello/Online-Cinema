@@ -17,6 +17,13 @@ class Index(str, Enum):
 class QueryType(str, Enum):
     MATCH = 'match'
     MULTI_MATCH = 'multi_match'
+    NESTED = 'nested'
+    TERMS = 'terms'
+
+
+class LogicType(str, Enum):
+    MUST = 'must'
+    SHOULD = 'should'
 
 
 # Время кеширования в Redis

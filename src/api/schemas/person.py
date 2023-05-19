@@ -1,16 +1,17 @@
-from pydantic import BaseModel, Field
+from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class UUIDMixin(BaseModel):
-    uuid: str = Field(alias='id')
+    uuid: UUID
 
 
 class Person(UUIDMixin):
     full_name: str
 
 
-class PersonFilm(BaseModel):
-    uuid: str
+class PersonFilm(UUIDMixin):
     roles: list[str]
 
 

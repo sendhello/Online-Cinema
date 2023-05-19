@@ -1,9 +1,9 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas.genre import Genre
-from uuid import UUID
 from services.genre import GenreService, get_genre_service
 
 router = APIRouter()

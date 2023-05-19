@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from . import AbstractService
 from .elastic_db import ElasticRequest
@@ -10,7 +11,7 @@ class BaseService(AbstractService, ABC):
         self.cache = cache
         self.request = request
 
-    async def get_by_id(self, id_: str):
+    async def get_by_id(self, id_: UUID):
         """Метод получения объекта по id.
         """
         key = f'id:{id_}'
