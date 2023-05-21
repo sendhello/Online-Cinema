@@ -4,11 +4,12 @@ services:
     container_name: fastapi
     hostname: fastapi
     build: ../../src
+    image: fastapi-image
     environment:
       PROJECT_NAME: ${PROJECT_NAME}
-      ES_HOST: "elasticsearch"
+      ES_HOST: ${ES_HOST}
       ES_PORT: ${ES_PORT}
-      REDIS_HOST: "redis"
+      REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     networks:
       - network
@@ -18,6 +19,7 @@ services:
   tests:
     container_name: tests
     hostname: tests
+    build: ../../src
     image: fastapi-image
     volumes:
       - ../../tests:/tests
@@ -27,12 +29,13 @@ services:
       sh -c "pip install -r /tests/functional/requirements.txt
       && python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
-      && pytest -vv /tests/functional/src"
+      && pytest -vvs /tests/functional/src"
     networks:
       - network
     depends_on:
       - fastapi
       - elasticsearch
+      - redis
 
   elasticsearch:
     container_name: elasticsearch
