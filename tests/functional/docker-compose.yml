@@ -1,0 +1,70 @@
+version: '3.3'
+services:
+  fastapi:
+    container_name: fastapi
+    hostname: fastapi
+    build: ../../src
+    environment:
+      PROJECT_NAME: ${PROJECT_NAME}
+      ES_HOST: "elasticsearch"
+      ES_PORT: ${ES_PORT}
+      REDIS_HOST: "redis"
+      REDIS_PORT: ${REDIS_PORT}
+    networks:
+      - network
+    ports:
+      - "8000:8000"
+
+  tests:
+    container_name: tests
+    hostname: tests
+    image: fastapi-image
+    volumes:
+      - ../../tests:/tests
+    environment:
+      - PYTHONPATH=/tests/functional:/tests
+    entrypoint: >
+      sh -c "pip install -r /tests/functional/requirements.txt
+      && python3 /tests/functional/utils/wait_for_es.py
+      && python3 /tests/functional/utils/wait_for_redis.py
+      && pytest -vv /tests/functional/src"
+    networks:
+      - network
+    depends_on:
+      - fastapi
+      - elasticsearch
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+    environment:
+      discovery.type: ${DISCOVERY_TYPE}
+      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - network
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+        ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    networks:
+      - network
+
+volumes:
+  pgdata:
+  redis_data:
+  elasticsearch_data:
+
+networks:
+  network:
