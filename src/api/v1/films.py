@@ -83,7 +83,7 @@ async def film_details(film_id: UUID, film_service: FilmService = Depends(get_fi
         imdb_rating=film.imdb_rating,
         description=film.description,
         genres=film.genre,
-        cast=film.actors_names,
+        cast=[*film.actors_names, *film.writers_names],
     )
 
     return returned_film

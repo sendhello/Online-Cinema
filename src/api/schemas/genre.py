@@ -1,6 +1,8 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
 class Genre(BaseModel):
-    uuid: str
+    uuid: UUID
     name: str
