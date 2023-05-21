@@ -1,5 +1,4 @@
 import pytest
-from functional.conftest import create_index
 from functional.testdata.genres_data import (
     GENRE_DATA, GENRES_LIST_DATA
 )
@@ -11,14 +10,13 @@ from functional.testdata.genres_data import (
 )
 @pytest.mark.asyncio
 async def test_get_all_genres(
-        es_client, service_get_data, es_write_data,
+        redis_client, es_write_data, service_get_data,
         es_data, expected_data,
 ):
     """
     Тест: получение всех персоналий
     /api/v1/persons
     """
-    await create_index(es_client)
     await es_write_data(es_data, 'genres')
 
     response = await service_get_data('genres/')
@@ -33,14 +31,13 @@ async def test_get_all_genres(
 )
 @pytest.mark.asyncio
 async def test_get_genre(
-        es_client, service_get_data, es_write_data,
+        redis_client, es_write_data, service_get_data,
         genre_id, es_data, expected_data
 ):
     """
     Тест: поиск по uuid
     /api/v1/persons/<uuid_person>
     """
-    await create_index(es_client)
     await es_write_data(es_data, 'genres')
 
     response = await service_get_data(f'genres/{genre_id}')
