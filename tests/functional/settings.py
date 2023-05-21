@@ -21,7 +21,7 @@ class TestSettings(BaseSettings):
     es_index: str = 'movies'
     es_id_field: str = 'id'
 
-    service_url = 'http://fastapi:8000/api/v1/'
+    service_url = 'http://test_api:8000/api/v1/'
 
     class Config:
         env_file = '.env'

@@ -47,7 +47,7 @@ def _get_es_bulk_query(es_data: list[dict], index_name: str, es_id_field: str):
             json.dumps({
                 'index': {
                     '_index': index_name,
-                    '_id': row[es_id_field]
+                    '_id': row[es_id_field],
                 }
             }),
             json.dumps(row)
@@ -97,7 +97,7 @@ async def session():
 
 @pytest_asyncio.fixture
 def service_get_data(session):
-    async def inner(endpoint: str, params=None) -> HTTPResponse:
+    async def inner(endpoint: str, params: dict = None) -> HTTPResponse:
         if params is None:
             params = {}
 

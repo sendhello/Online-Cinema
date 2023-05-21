@@ -9,3 +9,4 @@ backoff==2.2.1
 requests==2.30.0
 pytest-lazy-fixture==0.6.3
 Faker==18.9.0
+orjson==3.8.10
