@@ -1,9 +1,9 @@
 import asyncio
-import backoff
 
+import backoff
+from functional.settings import backoff_settings, test_settings
 from redis.asyncio import Redis
 from redis.exceptions import ConnectionError
-from functional.settings import test_settings, backoff_settings
 
 
 @backoff.on_exception(

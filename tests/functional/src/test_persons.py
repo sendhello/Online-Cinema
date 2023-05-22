@@ -1,10 +1,11 @@
-import pytest
 from typing import Callable
+
+import pytest
 from functional.testdata.persons_data import (
-    PERSONS_DATA,
     PERSON_BY_UUID_DATA,
     PERSON_FILMS_BY_UUID_DATA,
     PERSON_SEARCH_DATA,
+    PERSONS_DATA,
 )
 
 
@@ -93,7 +94,7 @@ async def test_get_person_search(
     await es_write_data(es_data['persons'], 'persons')
     await es_write_data(es_data['movies'], 'movies')
 
-    response = await service_get_data(f'persons/search', params=params)
+    response = await service_get_data('persons/search', params=params)
 
     assert response.status == 200, response.body
     assert response.body == expected_data

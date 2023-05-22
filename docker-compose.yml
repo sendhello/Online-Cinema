@@ -32,8 +32,8 @@ services:
       xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    expose:
-      - "9200"
+    ports:
+      - "9200:9200"
     networks:
       - network
 

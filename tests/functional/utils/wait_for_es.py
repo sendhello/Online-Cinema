@@ -1,8 +1,8 @@
 import asyncio
-import backoff
 
+import backoff
 from elasticsearch import AsyncElasticsearch, ConnectionError
-from functional.settings import test_settings, backoff_settings
+from functional.settings import backoff_settings, test_settings
 
 
 @backoff.on_exception(

@@ -1,6 +1,4 @@
-from functional.utils.models.person import (
-    PersonsData, PersonData, PersonFilmsData, PersonSearchData
-)
+from functional.utils.models.person import PersonData, PersonFilmsData, PersonsData, PersonSearchData
 
 PERSONS_DATA = [
     PersonsData(

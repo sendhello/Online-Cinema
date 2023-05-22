@@ -1,6 +1,6 @@
+from functional.utils.models.base_models import IDMixin, UUIDMixin
+from functional.utils.models.film import EsFilm
 from pydantic import BaseModel
-from functional.utils.models.base_models import UUIDMixin, IDMixin
-from functional.utils.models.film import Film
 
 
 class PersonUUID(UUIDMixin):
@@ -39,11 +39,11 @@ class PersonData(BaseModel):
 
 class PersonFilmsData(BaseModel):
     person_uuid: str
-    es_data: dict[str, list[PersonID | Film]]
+    es_data: dict[str, list[PersonID | EsFilm]]
     expected_data: list[FilmShort]
 
 
 class PersonSearchData(BaseModel):
     params: str
-    es_data: dict[str, list[PersonID | Film]]
+    es_data: dict[str, list[PersonID | EsFilm]]
     expected_data: list[PersonDescription]
