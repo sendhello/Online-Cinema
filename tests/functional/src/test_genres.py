@@ -1,7 +1,5 @@
 import pytest
-from functional.testdata.genres_data import (
-    GENRE_DATA, GENRES_LIST_DATA
-)
+from functional.testdata.genres_data import GENRE_DATA, GENRES_LIST_DATA
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,6 @@
 from faker import Faker
-from . import EsModel, ResponseModel
 
+from . import EsModel, ResponseModel
 
 fake = Faker()
 

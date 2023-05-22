@@ -1,7 +1,9 @@
-import backoff
-from pydantic import BaseSettings, Field
-from dotenv import load_dotenv
 from typing import Callable
+
+import backoff
+from dotenv import load_dotenv
+from pydantic import BaseSettings, Field
+
 load_dotenv()
 
 

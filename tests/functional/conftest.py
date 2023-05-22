@@ -1,16 +1,13 @@
 import asyncio
 import json
+
 import aiohttp
-import pytest
 import pytest_asyncio
-
-from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch
-
 from functional.settings import test_settings
 from functional.testdata.es_mapping import index_to_schema
 from functional.utils.models.base_models import HTTPResponse
-
+from redis.asyncio import Redis
 
 INDEX_NAMES = index_to_schema.keys()
 

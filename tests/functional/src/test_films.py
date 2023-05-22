@@ -1,11 +1,10 @@
 from typing import Callable
 
 import pytest
+from functional.testdata.fims_data import ES_FILMS_DATA
+from functional.utils.models.film import EsFilm, ResponseFilm, ResponseShortFilm
 from pydantic import BaseModel, ValidationError
 from pydantic.main import ModelMetaclass
-
-from functional.testdata.fims_data import ES_FILMS_DATA
-from functional.utils.models.film import EsFilm, ResponseShortFilm, ResponseFilm
 
 
 @pytest.mark.parametrize(
@@ -342,28 +341,27 @@ async def test_get_film_by_id(
 
         # Кейс: Невалидное значение imdb_rating
         (
-                [EsFilm.create_fake().dict() for _ in range(200)],
-                200,
-                ResponseFilm,
-                {'imdb_rating': None},
+            [EsFilm.create_fake().dict() for _ in range(200)],
+            200,
+            ResponseFilm,
+            {'imdb_rating': None},
         ),
 
         # Кейс: Невалидное значение genres
         (
-                [EsFilm.create_fake().dict() for _ in range(200)],
-                200,
-                ResponseFilm,
-                {'genres': 'Comedy'},
+            [EsFilm.create_fake().dict() for _ in range(200)],
+            200,
+            ResponseFilm,
+            {'genres': 'Comedy'},
         ),
 
         # Кейс: Невалидное значение cast
         (
-                [EsFilm.create_fake().dict() for _ in range(200)],
-                200,
-                ResponseFilm,
-                {'cast': 'Antony Boss'},
+            [EsFilm.create_fake().dict() for _ in range(200)],
+            200,
+            ResponseFilm,
+            {'cast': 'Antony Boss'},
         ),
-
 
     ]
 )

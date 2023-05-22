@@ -29,7 +29,7 @@ services:
       sh -c "pip install -r /tests/functional/requirements.txt
       && python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
-      && pytest -vvs /tests/functional/src/test_films.py"
+      && pytest -vvs /tests/functional/src"
     networks:
       - network
     depends_on:
