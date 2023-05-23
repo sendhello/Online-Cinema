@@ -1,11 +1,12 @@
 from http import HTTPStatus
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from api.utils import PaginateQueryParams
+from fastapi import APIRouter, Depends, HTTPException
+
 from api.schemas.genre import Genre
+from api.utils import PaginateQueryParams
 from services.genre import GenreService, get_genre_service
-from typing import Annotated
 
 router = APIRouter()
 

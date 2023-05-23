@@ -3,11 +3,10 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from api.utils import PaginateQueryParams
-from typing import Annotated
+
 from api.schemas.film import Film
 from api.schemas.person import Person, PersonDescription
-from api.utils import get_person_films
+from api.utils import PaginateQueryParams, get_person_films
 from constants import FilmSort
 from services.film import FilmService, get_film_service
 from services.person import PersonService, get_person_service

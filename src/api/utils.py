@@ -1,8 +1,10 @@
+from typing import Annotated
+
+from fastapi import Query
+
 from api.schemas.person import PersonFilm
 from models.person import Person
 from services.film import FilmService
-from typing import Annotated
-from fastapi import Query
 
 
 class PaginateQueryParams:

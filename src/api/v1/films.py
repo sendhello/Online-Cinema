@@ -1,11 +1,11 @@
 from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
-from api.utils import PaginateQueryParams
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.schemas import Film, FullFilm
+from api.utils import PaginateQueryParams
 from constants import FilmSort
 from services.film import FilmService, get_film_service
 
