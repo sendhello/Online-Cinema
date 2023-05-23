@@ -1,4 +1,5 @@
 import pytest
+from http import HTTPStatus
 from functional.testdata.genres_data import GENRE_DATA, GENRES_LIST_DATA
 
 
@@ -22,7 +23,7 @@ async def test_get_all_genres(
 
     response = await service_get_data('genres/')
 
-    assert response.status == 200, response.body
+    assert response.status == HTTPStatus.OK, response.body
     assert response.body == expected_data
 
 
@@ -43,5 +44,5 @@ async def test_get_genre(
 
     response = await service_get_data(f'genres/{genre_id}')
 
-    assert response.status == 200, response.body
+    assert response.status == HTTPStatus.OK, response.body
     assert response.body == expected_data

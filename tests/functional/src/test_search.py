@@ -1,10 +1,12 @@
-from typing import Callable
-
 import pytest
-from functional.testdata.fims_data import FILM_TITLES
-from functional.utils.models.film import EsFilm, ResponseShortFilm
 from pydantic import ValidationError
 from pydantic.main import ModelMetaclass
+
+from http import HTTPStatus
+from typing import Callable
+
+from functional.testdata.fims_data import FILM_TITLES
+from functional.utils.models.film import EsFilm, ResponseShortFilm
 
 
 pytest_mark = pytest.mark.asyncio
@@ -17,7 +19,7 @@ pytest_mark = pytest.mark.asyncio
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             {},
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {},
@@ -27,7 +29,7 @@ pytest_mark = pytest.mark.asyncio
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             {'page_size': 20},
-            200,
+            HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {},
@@ -37,7 +39,7 @@ pytest_mark = pytest.mark.asyncio
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             {'page_number': 3},
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {},
@@ -50,7 +52,7 @@ pytest_mark = pytest.mark.asyncio
                 *[EsFilm.create_fake(title=f'Film{i}', description='').dict() for i in range(50)],
             ],
             {'query': 'Star', 'page_size': 10},
-            200,
+            HTTPStatus.OK,
             10,
             ResponseShortFilm,
             {'title': 'star'},
@@ -91,7 +93,7 @@ async def test_films_search(
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {'uuid': 123456},
@@ -101,7 +103,7 @@ async def test_films_search(
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {'title': []},
@@ -111,7 +113,7 @@ async def test_films_search(
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {'imdb_rating': 'good'},
