@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from . import AbstractService
+from .abstract import AbstractService
 from .elastic_db import ElasticRequest
 from .redis_cache import RedisCache
 
