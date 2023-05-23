@@ -12,7 +12,7 @@ from models.film import Film
 from models.genre import Genre
 from models.person import Person
 
-from . import AbstractDBRequest
+from .abstract import AbstractDBRequest
 
 logger = logging.getLogger(__name__)
 

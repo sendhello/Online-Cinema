@@ -1,4 +1,4 @@
-from . import Model, UUIDMixin
+from .base import Model, UUIDMixin
 
 
 class Genre(Model, UUIDMixin):
