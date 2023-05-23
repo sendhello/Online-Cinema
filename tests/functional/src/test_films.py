@@ -1,10 +1,15 @@
-from typing import Callable
-
 import pytest
-from functional.testdata.fims_data import ES_FILMS_DATA
-from functional.utils.models.film import EsFilm, ResponseFilm, ResponseShortFilm
 from pydantic import BaseModel, ValidationError
 from pydantic.main import ModelMetaclass
+
+from http import HTTPStatus
+from typing import Callable
+
+from functional.testdata.fims_data import ES_FILMS_DATA
+from functional.utils.models.film import EsFilm, ResponseFilm, ResponseShortFilm
+
+
+pytest_mark = pytest.mark.asyncio
 
 
 @pytest.mark.parametrize(
@@ -14,7 +19,7 @@ from pydantic.main import ModelMetaclass
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {},
@@ -24,7 +29,7 @@ from pydantic.main import ModelMetaclass
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             {'page_size': 20},
-            200,
+            HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {},
@@ -34,7 +39,7 @@ from pydantic.main import ModelMetaclass
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             {'page_number': 3},
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {},
@@ -49,7 +54,7 @@ from pydantic.main import ModelMetaclass
                 *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(11)]
             ],
             {'genre': 'Drama'},
-            200,
+            HTTPStatus.OK,
             41,
             ResponseShortFilm,
             {},
@@ -65,7 +70,7 @@ from pydantic.main import ModelMetaclass
                 *[EsFilm.create_fake(imdb_rating=9.1).dict() for _ in range(6)],
             ],
             {'sort': 'imdb_rating', 'page_size': 20},
-            200,
+            HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {'imdb_rating': 8.0},
@@ -81,7 +86,7 @@ from pydantic.main import ModelMetaclass
                 *[EsFilm.create_fake(imdb_rating=9.1).dict() for _ in range(6)],
             ],
             {'sort': '-imdb_rating', 'page_size': 20},
-            200,
+            HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {'imdb_rating': 55.5},
@@ -94,7 +99,7 @@ from pydantic.main import ModelMetaclass
                 *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(40)]
             ],
             {'sort': '-imdb_rating', 'page_size': 20, 'genre': 'Drama', 'page_number': 2},
-            200,
+            HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {},
@@ -107,14 +112,14 @@ from pydantic.main import ModelMetaclass
                 *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(40)]
             ],
             {'genre': 'Comedy'},
-            200,
+            HTTPStatus.OK,
             0,
             ResponseShortFilm,
             {},
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_films(
         redis_client,
         es_write_data: Callable,
@@ -147,7 +152,7 @@ async def test_get_films(
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {'uuid': 123456},
@@ -157,7 +162,7 @@ async def test_get_films(
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {'title': []},
@@ -167,14 +172,14 @@ async def test_get_films(
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
             None,
-            200,
+            HTTPStatus.OK,
             50,
             ResponseShortFilm,
             {'imdb_rating': 'good'},
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_films_no_valid(
         redis_client,
         es_write_data: Callable,
@@ -210,14 +215,14 @@ async def test_get_films_no_valid(
                 *[EsFilm.create_fake(imdb_rating=99).dict() for _ in range(20)],
             ],
             {'sort': '-imdb_rating', 'page_size': 20, 'page_number': 2},
-            200,
+            HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {'imdb_rating': 15.0},
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_films_with_cache(
         redis_client,
         es_write_data: Callable,
@@ -269,7 +274,7 @@ async def test_get_films_with_cache(
             ],
             ES_FILMS_DATA['id'],
             ES_FILMS_DATA,
-            200,
+            HTTPStatus.OK,
             ResponseFilm,
             {},
         ),
@@ -288,7 +293,7 @@ async def test_get_films_with_cache(
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_film_by_id(
         redis_client,
         es_write_data: Callable,
@@ -326,7 +331,7 @@ async def test_get_film_by_id(
         # Кейс: Невалидное значение title
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
-            200,
+            HTTPStatus.OK,
             ResponseFilm,
             {'title': None},
         ),
@@ -334,7 +339,7 @@ async def test_get_film_by_id(
         # Кейс: Невалидное значение description
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
-            200,
+            HTTPStatus.OK,
             ResponseFilm,
             {'description': []},
         ),
@@ -342,7 +347,7 @@ async def test_get_film_by_id(
         # Кейс: Невалидное значение imdb_rating
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
-            200,
+            HTTPStatus.OK,
             ResponseFilm,
             {'imdb_rating': None},
         ),
@@ -350,7 +355,7 @@ async def test_get_film_by_id(
         # Кейс: Невалидное значение genres
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
-            200,
+            HTTPStatus.OK,
             ResponseFilm,
             {'genres': 'Comedy'},
         ),
@@ -358,14 +363,14 @@ async def test_get_film_by_id(
         # Кейс: Невалидное значение cast
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
-            200,
+            HTTPStatus.OK,
             ResponseFilm,
             {'cast': 'Antony Boss'},
         ),
 
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_film_by_id_not_valid(
         redis_client,
         es_write_data: Callable,

@@ -1,6 +1,6 @@
-from typing import Callable
-
 import pytest
+from http import HTTPStatus
+from typing import Callable
 from functional.testdata.persons_data import (
     PERSON_BY_UUID_DATA,
     PERSON_FILMS_BY_UUID_DATA,
@@ -9,11 +9,14 @@ from functional.testdata.persons_data import (
 )
 
 
+pytest_mark = pytest.mark.asyncio
+
+
 @pytest.mark.parametrize(
     'es_data, expected_data',
     PERSONS_DATA,
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_all_persons(
         redis_client,
         es_write_data: Callable,
@@ -29,7 +32,7 @@ async def test_get_all_persons(
 
     response = await service_get_data('persons/')
 
-    assert response.status == 200, response.body
+    assert response.status == HTTPStatus.OK, response.body
     assert response.body == expected_data
 
 
@@ -37,7 +40,7 @@ async def test_get_all_persons(
     'uuid_person, es_data, expected_data',
     PERSON_BY_UUID_DATA,
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_person(
         redis_client,
         es_write_data: Callable,
@@ -52,7 +55,7 @@ async def test_get_person(
 
     response = await service_get_data(f'persons/{uuid_person}')
 
-    assert response.status == 200, response.body
+    assert response.status == HTTPStatus.OK, response.body
     assert response.body == expected_data
 
 
@@ -60,7 +63,7 @@ async def test_get_person(
     'uuid_person, es_data, expected_data',
     PERSON_FILMS_BY_UUID_DATA,
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_person_film(
         redis_client, es_write_data, service_get_data,
         uuid_person, es_data, expected_data,
@@ -74,7 +77,7 @@ async def test_get_person_film(
 
     response = await service_get_data(f'persons/{uuid_person}/film')
 
-    assert response.status == 200, response.body
+    assert response.status == HTTPStatus.OK, response.body
     assert response.body == expected_data
 
 
@@ -82,7 +85,7 @@ async def test_get_person_film(
     'params, es_data, expected_data',
     PERSON_SEARCH_DATA,
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_person_search(
         redis_client, es_write_data, service_get_data,
         expected_data, es_data, params,
@@ -96,5 +99,5 @@ async def test_get_person_search(
 
     response = await service_get_data('persons/search', params=params)
 
-    assert response.status == 200, response.body
+    assert response.status == HTTPStatus.OK, response.body
     assert response.body == expected_data
