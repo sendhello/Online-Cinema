@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
+from api.utils import PaginateQueryParams
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -19,17 +20,16 @@ router = APIRouter()
                 "и возможностью фильтрации по жанрам",
 )
 async def films(
+        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+        film_service: Annotated[FilmService, Depends(get_film_service)],
         sort: FilmSort | None = None,
         genre: str | None = None,
-        page_size: int = Query(50, ge=1),
-        page_number: int = Query(1, ge=1),
-        film_service: FilmService = Depends(get_film_service)
 ) -> list[Film]:
     """Список фильмов.
     """
     films = await film_service.filter(
-        page_size=page_size,
-        page_number=page_number,
+        page_size=paginate.page_size,
+        page_number=paginate.page_number,
         sort=sort,
         genre=genre,
     )
@@ -46,16 +46,15 @@ async def films(
                 "Ищет по полям 'title', 'description', 'actors_names', 'director', 'writers_names' и 'genre'",
 )
 async def film_search(
+        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+        film_service: Annotated[FilmService, Depends(get_film_service)],
         query: Annotated[str | None, Query(max_length=255)] = None,
-        page_size: Annotated[int, Query(ge=1)] = 50,
-        page_number: Annotated[int, Query(ge=1)] = 1,
-        film_service: FilmService = Depends(get_film_service)
 ) -> list[Film]:
     """Поиск по фильмам.
     """
     films = await film_service.filter(
-        page_size=page_size,
-        page_number=page_number,
+        page_size=paginate.page_size,
+        page_number=paginate.page_number,
         query=query,
     )
     returned_films = [Film.parse_obj(film) for film in films]
@@ -70,7 +69,10 @@ async def film_search(
     summary="Фильма по ID",
     description="Получение польной информации по фильму по его ID",
 )
-async def film_details(film_id: UUID, film_service: FilmService = Depends(get_film_service)) -> FullFilm:
+async def film_details(
+        film_id: UUID,
+        film_service: Annotated[FilmService, Depends(get_film_service)],
+) -> FullFilm:
     """Страница фильма.
     """
     film = await film_service.get_by_id(film_id)
