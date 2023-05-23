@@ -3,7 +3,8 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-
+from api.utils import PaginateQueryParams
+from typing import Annotated
 from api.schemas.film import Film
 from api.schemas.person import Person, PersonDescription
 from api.utils import get_person_films
@@ -21,15 +22,14 @@ router = APIRouter()
     description="Получения списка всех персон",
 )
 async def persons(
-        page_size: Annotated[int, Query(ge=1)] = 50,
-        page_number: Annotated[int, Query(ge=1)] = 1,
-        person_service: PersonService = Depends(get_person_service)
+        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+        person_service: Annotated[PersonService, Depends(get_person_service)],
 ) -> list[Person]:
     """Список фильмов.
     """
     persons = await person_service.filter(
-        page_size=page_size,
-        page_number=page_number,
+        page_size=paginate.page_size,
+        page_number=paginate.page_number,
     )
 
     return [Person.parse_obj(person) for person in persons]
@@ -42,27 +42,26 @@ async def persons(
     description="Полнотекстовый поиск по персонам",
 )
 async def person_search(
+        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+        person_service: Annotated[PersonService, Depends(get_person_service)],
+        film_service: Annotated[FilmService, Depends(get_film_service)],
         query: Annotated[str | None, Query(max_length=255)] = None,
-        page_size: Annotated[int, Query(ge=1)] = 50,
-        page_number: Annotated[int, Query(ge=1)] = 1,
-        person_service: PersonService = Depends(get_person_service),
-        film_service: FilmService = Depends(get_film_service),
 ) -> list[PersonDescription]:
     """Поиск по персонам.
     """
     result = []
 
     persons = await person_service.filter(
-        page_size=page_size,
-        page_number=page_number,
+        page_size=paginate.page_size,
+        page_number=paginate.page_number,
         query=query,
     )
 
     for person in persons:
         person_films = await get_person_films(
             film_service=film_service,
-            page_size=page_size,
-            page_number=page_number,
+            page_size=paginate.page_size,
+            page_number=paginate.page_number,
             person=person,
         )
 
@@ -85,10 +84,9 @@ async def person_search(
 )
 async def person_details(
         person_id: UUID,
-        page_size: Annotated[int, Query(ge=1)] = 50,
-        page_number: Annotated[int, Query(ge=1)] = 1,
-        person_service: PersonService = Depends(get_person_service),
-        film_service: FilmService = Depends(get_film_service),
+        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+        person_service: Annotated[PersonService, Depends(get_person_service)],
+        film_service: Annotated[FilmService, Depends(get_film_service)],
 ) -> PersonDescription:
     """Страница персоны.
     """
@@ -97,8 +95,8 @@ async def person_details(
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
 
     person_films = await get_person_films(
-        page_size=page_size,
-        page_number=page_number,
+        page_size=paginate.page_size,
+        page_number=paginate.page_number,
         film_service=film_service,
         person=person,
     )
@@ -118,11 +116,10 @@ async def person_details(
 )
 async def person_films(
         person_id: UUID,
+        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+        person_service: Annotated[PersonService, Depends(get_person_service)],
+        film_service: Annotated[FilmService, Depends(get_film_service)],
         sort: FilmSort | None = None,
-        page_size: Annotated[int, Query(ge=1)] = 50,
-        page_number: Annotated[int, Query(ge=1)] = 1,
-        person_service: PersonService = Depends(get_person_service),
-        film_service: FilmService = Depends(get_film_service),
 ) -> list[Film]:
     """Фильмы с персоной.
     """
@@ -131,8 +128,8 @@ async def person_films(
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
 
     films = await film_service.filter(
-        page_size=page_size,
-        page_number=page_number,
+        page_size=paginate.page_size,
+        page_number=paginate.page_number,
         sort=sort,
         person_id=person.uuid,
     )
