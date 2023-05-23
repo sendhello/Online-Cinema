@@ -33,9 +33,9 @@ services:
     networks:
       - network
     depends_on:
-      - fastapi
-      - elasticsearch
-      - redis
+      - test_api
+      - test_elasticsearch
+      - test_redis
 
   test_elasticsearch:
     container_name: test_elasticsearch
