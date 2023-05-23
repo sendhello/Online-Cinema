@@ -7,6 +7,9 @@ from pydantic import BaseModel, ValidationError
 from pydantic.main import ModelMetaclass
 
 
+pytest_mark = pytest.mark.asyncio
+
+
 @pytest.mark.parametrize(
     'es_data, url_params, res_status, res_count, res_model, check_model_attrs',
     [
@@ -114,7 +117,7 @@ from pydantic.main import ModelMetaclass
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_films(
         redis_client,
         es_write_data: Callable,
@@ -174,7 +177,7 @@ async def test_get_films(
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_films_no_valid(
         redis_client,
         es_write_data: Callable,
@@ -217,7 +220,7 @@ async def test_get_films_no_valid(
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_films_with_cache(
         redis_client,
         es_write_data: Callable,
@@ -288,7 +291,7 @@ async def test_get_films_with_cache(
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_film_by_id(
         redis_client,
         es_write_data: Callable,
@@ -365,7 +368,7 @@ async def test_get_film_by_id(
 
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_film_by_id_not_valid(
         redis_client,
         es_write_data: Callable,

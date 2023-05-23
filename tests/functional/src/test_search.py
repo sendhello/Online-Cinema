@@ -7,6 +7,9 @@ from pydantic import ValidationError
 from pydantic.main import ModelMetaclass
 
 
+pytest_mark = pytest.mark.asyncio
+
+
 @pytest.mark.parametrize(
     'es_data, url_params, res_status, res_count, res_model, check_model_attrs_in',
     [
@@ -54,7 +57,7 @@ from pydantic.main import ModelMetaclass
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_films_search(
         redis_client,
         es_write_data: Callable,
@@ -115,7 +118,7 @@ async def test_films_search(
         ),
     ]
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_films_search_no_valid(
         redis_client,
         es_write_data: Callable,

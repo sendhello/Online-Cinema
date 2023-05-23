@@ -2,11 +2,14 @@ import pytest
 from functional.testdata.genres_data import GENRE_DATA, GENRES_LIST_DATA
 
 
+pytest_mark = pytest.mark.asyncio
+
+
 @pytest.mark.parametrize(
     'es_data, expected_data',
     GENRES_LIST_DATA,
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_all_genres(
         redis_client, es_write_data, service_get_data,
         es_data, expected_data,
@@ -27,7 +30,7 @@ async def test_get_all_genres(
     'genre_id, es_data, expected_data',
     GENRE_DATA,
 )
-@pytest.mark.asyncio
+@pytest_mark
 async def test_get_genre(
         redis_client, es_write_data, service_get_data,
         genre_id, es_data, expected_data
