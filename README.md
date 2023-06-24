@@ -1,7 +1,7 @@
 # Online-кинотеатр
 
 ### Список сервисов online-кинотеатра:
-* [Async API](src/README.md)
+* [Async API](async_api/README.md)
 
 ### Поддержка проекта
 

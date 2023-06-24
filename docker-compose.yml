@@ -74,7 +74,7 @@ services:
   api:
     container_name: api
     hostname: api
-    build: src
+    build: async_api
     environment:
       PROJECT_NAME: ${PROJECT_NAME}
       ES_HOST: ${ES_HOST}

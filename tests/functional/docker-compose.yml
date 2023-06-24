@@ -3,7 +3,7 @@ services:
   test_api:
     container_name: test_api
     hostname: test_api
-    build: ../../src
+    build: ../../async_api
     image: fastapi-image
     environment:
       PROJECT_NAME: ${PROJECT_NAME}
@@ -19,7 +19,7 @@ services:
   tests:
     container_name: tests
     hostname: tests
-    build: ../../src
+    build: ../../async_api
     image: fastapi-image
     volumes:
       - ../../tests:/tests
