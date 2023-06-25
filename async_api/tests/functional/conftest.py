@@ -4,9 +4,9 @@ import json
 import aiohttp
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
-from functional.settings import test_settings
-from functional.testdata.es_mapping import index_to_schema
-from functional.utils.models.base_models import HTTPResponse
+from .settings import test_settings
+from .testdata.es_mapping import index_to_schema
+from .utils.models.base_models import HTTPResponse
 from redis.asyncio import Redis
 
 INDEX_NAMES = index_to_schema.keys()

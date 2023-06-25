@@ -1,4 +1,4 @@
-from functional.utils.models.genre import GenreData, GenresListData
+from ..utils.models.genre import GenreData, GenresListData
 
 GENRE_DATA = [
     GenreData(

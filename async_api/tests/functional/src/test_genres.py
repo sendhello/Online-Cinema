@@ -1,6 +1,6 @@
 import pytest
 from http import HTTPStatus
-from functional.testdata.genres_data import GENRE_DATA, GENRES_LIST_DATA
+from ..testdata.genres_data import GENRE_DATA, GENRES_LIST_DATA
 
 
 pytest_mark = pytest.mark.asyncio

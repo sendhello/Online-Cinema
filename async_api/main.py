@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 
 from api import router as api_router
 from core.config import settings
-from db import elastic, redis
+from db import elastic, redis_db
 
 
 @asynccontextmanager

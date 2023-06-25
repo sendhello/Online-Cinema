@@ -1,5 +1,5 @@
-from functional.utils.models.base_models import IDMixin, UUIDMixin
-from functional.utils.models.film import EsFilm
+from .base_models import IDMixin, UUIDMixin
+from .film import EsFilm
 from pydantic import BaseModel
 
 

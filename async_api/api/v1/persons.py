@@ -4,8 +4,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.schemas.film import Film
-from api.schemas.person import Person, PersonDescription
+from schemas import Film
+from schemas import Person, PersonDescription
 from api.utils import PaginateQueryParams, get_person_films
 from constants import FilmSort
 from services.film import FilmService, get_film_service

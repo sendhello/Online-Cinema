@@ -5,8 +5,8 @@ from pydantic.main import ModelMetaclass
 from http import HTTPStatus
 from typing import Callable
 
-from functional.testdata.fims_data import FILM_TITLES
-from functional.utils.models.film import EsFilm, ResponseShortFilm
+from ..testdata.fims_data import FILM_TITLES
+from ..utils.models.film import EsFilm, ResponseShortFilm
 
 
 pytest_mark = pytest.mark.asyncio

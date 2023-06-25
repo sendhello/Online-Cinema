@@ -8,7 +8,7 @@ from redis.asyncio import Redis
 
 from constants import Index
 from db.elastic import get_elastic
-from db.redis import get_redis
+from db.redis_db import get_redis
 from models.genre import Genre
 
 from .base import BaseService

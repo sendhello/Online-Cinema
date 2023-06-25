@@ -1,4 +1,4 @@
-from functional.utils.models.base_models import IDMixin, UUIDMixin
+from .base_models import IDMixin, UUIDMixin
 from pydantic import BaseModel
 
 

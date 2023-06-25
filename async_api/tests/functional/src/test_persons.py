@@ -1,7 +1,7 @@
 import pytest
 from http import HTTPStatus
 from typing import Callable
-from functional.testdata.persons_data import (
+from ..testdata.persons_data import (
     PERSON_BY_UUID_DATA,
     PERSON_FILMS_BY_UUID_DATA,
     PERSON_SEARCH_DATA,
