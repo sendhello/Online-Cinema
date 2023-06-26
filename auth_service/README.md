@@ -15,7 +15,6 @@
 Группа разработки:
 
 * Иван Баженов (*[@sendhello](https://www.google.com)*)
-* Александр ???
 
 ## Описание обязательных методов для запуска сервиса
 
@@ -24,7 +23,7 @@
 docker compose up --build
 ```
 
-### Документация ?
+### Документация
 * http://127.0.0.1/api/openapi (Swagger)
 * http://127.0.0.1/api/openapi.json (openapi)
 

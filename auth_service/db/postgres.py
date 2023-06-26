@@ -1,18 +1,15 @@
 # db/postgres.py
-from core.config import app_settings
+from core.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 # Создаём базовый класс для будущих моделей
 Base = declarative_base()
+
 # Создаём движок
 # Настройки подключения к БД передаём из переменных окружения, которые заранее загружены в файл настроек
-engine = create_async_engine(app_settings.database_dsn, echo=True, future=True)
-async_session = sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
+engine = create_async_engine(settings.pg_dsn, echo=True, future=True)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 async def get_session() -> AsyncSession:

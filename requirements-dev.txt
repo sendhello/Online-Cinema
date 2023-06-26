@@ -1,6 +1,7 @@
 -r etl/requirements.txt
 -r async_api/requirements.txt
 -r async_api/tests/functional/requirements.txt
+-r auth_service/requirements.txt
 
 flake8==6.0.0
 isort==5.12.0
