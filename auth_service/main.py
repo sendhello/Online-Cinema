@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from api import router as api_router
-from core.config import settings
+from core.settings import settings
 from db import postgres, redis_db
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -26,11 +26,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title=settings.project_name,
-    description="Сервис аутентификации и авторизации",
-    version="1.0.0",
-    docs_url="/api/openapi",
-    openapi_url="/api/openapi.json",
+    description='Сервис аутентификации и авторизации',
+    version='1.0.0',
+    docs_url='/api/openapi',
+    openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
 )
 
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix='/api')
