@@ -1,7 +1,8 @@
 import uuid
 from hashlib import md5
 from http import HTTPStatus
-
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security.http import HTTPBearer
 from async_fastapi_jwt_auth import AuthJWT
 from constants import ANONYMOUS
 from core.settings import settings
@@ -60,12 +61,13 @@ async def logout(
     user_agent: str = Header(default=None),
     authorize: AuthJWT = Depends(),
     redis: Redis = Depends(get_redis),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))
 ) -> dict:
     access_key = await authorize.get_jwt_subject()
     access_token_expires = settings.authjwt_access_token_expires
-    await redis.setex(
-        name=access_key, time=access_token_expires, value=authorize._token
-    )
+    current_access_token = credentials.credentials
+    await redis.sadd(access_key, current_access_token)
+    await redis.expire(access_key, time=access_token_expires)
 
     user_claim = await authorize.get_raw_jwt()
     current_user = UserInDB.parse_obj(user_claim)

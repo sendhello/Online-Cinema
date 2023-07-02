@@ -10,7 +10,9 @@ from starlette import status
 
 
 async def full_protected(
-    authorize: AuthJWT = Depends(), _: str = Depends(HTTPBearer(auto_error=False))
+    authorize: AuthJWT = Depends(),
+    redis: Redis = Depends(get_redis),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))
 ) -> AuthJWT:
     try:
         await authorize.jwt_required()
@@ -18,19 +20,22 @@ async def full_protected(
     except AuthJWTException as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
-    redis = await get_redis()
     access_key = await authorize.get_jwt_subject()
-    blocked_access_token = await redis.get(name=access_key)
-    if blocked_access_token is not None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
-        )
+    blocked_access_tokens = await redis.smembers(access_key)
+    if not blocked_access_tokens:
+        return authorize
 
-    return authorize
+    current_access_token = credentials.credentials
+    if current_access_token not in blocked_access_tokens:
+        return authorize
+
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked')
 
 
 async def partial_protected(
-    authorize: AuthJWT = Depends(), _: str = Depends(HTTPBearer(auto_error=False))
+    authorize: AuthJWT = Depends(),
+    redis: Redis = Depends(get_redis),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ) -> AuthJWT:
     try:
         await authorize.jwt_optional()
@@ -38,18 +43,19 @@ async def partial_protected(
     except AuthJWTException as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))
 
-    redis = await get_redis()
     access_key = await authorize.get_jwt_subject()
     if access_key is None:
         return authorize
 
-    blocked_access_token = await redis.get(name=access_key)
-    if blocked_access_token is None:
+    blocked_access_tokens = await redis.smembers(access_key)
+    if not blocked_access_tokens:
         return authorize
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
-    )
+    current_access_token = credentials.credentials
+    if current_access_token not in blocked_access_tokens:
+        return authorize
+
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked')
 
 
 async def refresh_protected(
@@ -65,10 +71,10 @@ async def refresh_protected(
     current_refresh_token = credentials.credentials
     refresh_key = await authorize.get_jwt_subject()
     active_refresh_token = await redis.get(name=refresh_key)
-    if current_refresh_token != active_refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='Signature has blocked',
-        )
+    if current_refresh_token == active_refresh_token:
+        return authorize
 
-    return authorize
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail='Signature has blocked',
+    )
