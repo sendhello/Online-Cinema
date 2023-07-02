@@ -38,5 +38,14 @@ class User(Base, IDMixin, CRUDMixin):
 
         return user
 
+    @classmethod
+    async def get_by_id(cls, id_: UUID) -> 'User':
+        async with async_session() as session:
+            request = select(cls).where(cls.id == id_)
+            result = await session.execute(request)
+            user = result.scalars().first()
+
+        return user
+
     def __repr__(self) -> str:
         return f'<User {self.login}>'

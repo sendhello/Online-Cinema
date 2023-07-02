@@ -1,18 +1,19 @@
+import uuid
+from hashlib import md5
 from http import HTTPStatus
 
 from async_fastapi_jwt_auth import AuthJWT
-from fastapi import APIRouter, Depends, HTTPException, status
+from constants import ANONYMOUS
+from core.settings import settings
+from db.redis_db import get_redis
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.encoders import jsonable_encoder
 from models import User
+from redis.asyncio import Redis
 from schemas import Tokens, UserCreate, UserInDB, UserLogin
 from security import PART_PROTECTED, PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
-from starlette.status import HTTP_409_CONFLICT
-import uuid
-
-from async_fastapi_jwt_auth import AuthJWT
-from async_fastapi_jwt_auth.exceptions import AuthJWTException
-from constants import ANONYMOUS
+from starlette import status
 
 router = APIRouter()
 
@@ -25,15 +26,19 @@ async def create_user(user_create: UserCreate) -> UserInDB:
 
     except IntegrityError:
         raise HTTPException(
-            status_code=HTTP_409_CONFLICT,
+            status_code=status.HTTP_409_CONFLICT,
             detail='User with such login is registered already',
         )
 
     return user
 
 
-@router.post("/login", response_model=Tokens, status_code=status.HTTP_200_OK)
-async def login(user_login: UserLogin, authorize: AuthJWT = Depends()) -> Tokens:
+@router.post('/login', response_model=Tokens)
+async def login(
+    user_login: UserLogin,
+    user_agent: str = Header(default=None),
+    authorize: AuthJWT = Depends(),
+) -> Tokens:
     db_user = await User.get_by_login(username=user_login.login)
     if db_user is None:
         raise HTTPException(
@@ -46,15 +51,44 @@ async def login(user_login: UserLogin, authorize: AuthJWT = Depends()) -> Tokens
         )
 
     user = UserInDB.from_orm(db_user)
-    tokens = await Tokens.create(authorize, user)
+    tokens = await Tokens.create(authorize, user, user_agent)
     return tokens
 
 
-@router.post('/refresh', dependencies=REFRESH_PROTECTED)
-async def refresh(authorize: AuthJWT = REFRESH_PROTECTED[0]):
+@router.post('/logout', dependencies=PROTECTED)
+async def logout(
+    user_agent: str = Header(default=None),
+    authorize: AuthJWT = Depends(),
+    redis: Redis = Depends(get_redis),
+) -> dict:
+    access_key = await authorize.get_jwt_subject()
+    access_token_expires = settings.authjwt_access_token_expires
+    await redis.setex(
+        name=access_key, time=access_token_expires, value=authorize._token
+    )
+
     user_claim = await authorize.get_raw_jwt()
     current_user = UserInDB.parse_obj(user_claim)
-    tokens = await Tokens.create(authorize, current_user)
+    user_agent_hash = md5(user_agent.encode()).hexdigest()
+    refresh_key = f'refresh.{current_user.id}.{user_agent_hash}'
+    await redis.delete(refresh_key)
+    return {}
+
+
+@router.post('/refresh', dependencies=REFRESH_PROTECTED)
+async def refresh(
+    user_agent: str = Header(default=None),
+    authorize: AuthJWT = REFRESH_PROTECTED[0],
+    redis: Redis = Depends(get_redis),
+):
+    old_refresh_key = await authorize.get_jwt_subject()
+    await redis.delete(old_refresh_key)
+
+    user_claims = await authorize.get_raw_jwt()
+    current_user = UserInDB.parse_obj(user_claims)
+    tokens = await Tokens.create(
+        authorize=authorize, user=current_user, user_agent=user_agent
+    )
     return tokens
 
 
@@ -65,7 +99,9 @@ async def user(authorize: AuthJWT = PROTECTED[0]):
     return current_user
 
 
-@router.get('/partially-protected', response_model=UserInDB, dependencies=PART_PROTECTED)
+@router.get(
+    '/partially-protected', response_model=UserInDB, dependencies=PART_PROTECTED
+)
 async def partially_protected(authorize: AuthJWT = PART_PROTECTED[0]):
     anonymous = UserInDB(
         id=uuid.uuid4(),

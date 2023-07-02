@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # Настройки Redis
     redis_host: str = Field('127.0.0.1', env='REDIS_HOST')
-    redis_port: int = Field(6377, env='REDIS_PORT')
+    redis_port: int = Field(6379, env='REDIS_PORT')
 
     # Настройки Postgres
     pg_dsn: PostgresDsn = Field(
@@ -24,8 +24,8 @@ class Settings(BaseSettings):
 
     # Настройки AuthJWT
     authjwt_secret_key: str = Field('secret', env='SECRET_KEY')
-    authjwt_access_token_expires: timedelta = timedelta(minutes=1)
-    authjwt_refresh_token_expires: timedelta = timedelta(minutes=5)
+    authjwt_access_token_expires: timedelta = timedelta(minutes=15)
+    authjwt_refresh_token_expires: timedelta = timedelta(days=30)
 
 
 @AuthJWT.load_config
