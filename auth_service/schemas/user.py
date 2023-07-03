@@ -1,5 +1,6 @@
 from .base import Model
 from .mixins import IdMixin
+from .roles import RoleInDB
 
 
 class BaseUser(Model):
@@ -20,6 +21,12 @@ class UserInDB(BaseUser, IdMixin):
     """Модель пользователя в БД."""
 
     login: str
+
+
+class UserWithRole(UserInDB):
+    """Модель пользователя с ролью."""
+
+    role: RoleInDB | None
 
 
 class UserUpdate(BaseUser):

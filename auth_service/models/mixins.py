@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
 
-from db.postgres import async_session
+from db.postgres import async_session, Base
 from sqlalchemy import Column, DateTime, select
+
 from sqlalchemy.dialects.postgresql import UUID
 
 
@@ -25,7 +26,6 @@ class CRUDMixin:
             await session.delete(self)
             if commit:
                 await session.commit()
-                await session.refresh(self)
 
         return self
 
@@ -37,6 +37,15 @@ class CRUDMixin:
                 await session.refresh(self)
 
         return self
+
+    @classmethod
+    async def get_all(cls) -> list[Base]:
+        async with async_session() as session:
+            request = select(cls)
+            result = await session.execute(request)
+            entities = result.scalars().all()
+
+        return entities
 
 
 class IDMixin:
@@ -51,7 +60,7 @@ class IDMixin:
     updated_at = Column(DateTime, onupdate=datetime.utcnow())
 
     @classmethod
-    async def get_by_id(cls, id_: UUID) -> 'IDMixin':
+    async def get_by_id(cls, id_: UUID) -> Base:
         async with async_session() as session:
             request = select(cls).where(cls.id == id_)
             result = await session.execute(request)

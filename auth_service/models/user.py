@@ -3,8 +3,8 @@ from sqlalchemy import Column, ForeignKey, String, select
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from werkzeug.security import check_password_hash, generate_password_hash
-
-from .base import CRUDMixin, IDMixin
+from sqlalchemy.orm import joinedload
+from .mixins import CRUDMixin, IDMixin
 
 
 class User(Base, IDMixin, CRUDMixin):
@@ -41,6 +41,24 @@ class User(Base, IDMixin, CRUDMixin):
             user = result.scalars().first()
 
         return user
+
+    @classmethod
+    async def get_all(cls) -> list['User']:
+        async with async_session() as session:
+            request = select(cls).options(joinedload(cls.role))
+            result = await session.execute(request)
+            users = result.scalars().all()
+
+        return users
+
+    @classmethod
+    async def get_by_id(cls, id_: UUID) -> 'User':
+        async with async_session() as session:
+            request = select(cls).options(joinedload(cls.role)).where(cls.id == id_)
+            result = await session.execute(request)
+            users = result.scalars().first()
+
+        return users
 
     def __repr__(self) -> str:
         return f'<User {self.login}>'

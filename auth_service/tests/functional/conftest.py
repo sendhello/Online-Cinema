@@ -8,7 +8,7 @@ sys.path.insert(0, f"{os.getcwd()}/auth_service")
 import pytest
 from fastapi.testclient import TestClient
 from models import History, User
-from models.base import CRUDMixin
+from models.mixins import CRUDMixin
 from tests.functional.redis import redis
 
 from auth_service.main import app
