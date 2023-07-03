@@ -1,3 +1,3 @@
 # flake8: noqa
 from .token import Tokens
-from .user import UserCreate, UserInDB, UserLogin
+from .user import UserChangePassword, UserCreate, UserInDB, UserLogin, UserUpdate

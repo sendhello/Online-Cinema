@@ -1,18 +1,17 @@
-import uuid
 from hashlib import md5
 from http import HTTPStatus
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security.http import HTTPBearer
+
 from async_fastapi_jwt_auth import AuthJWT
-from constants import ANONYMOUS
 from core.settings import settings
 from db.redis_db import get_redis
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security.http import HTTPBearer
 from models import User
 from redis.asyncio import Redis
 from schemas import Tokens, UserCreate, UserInDB, UserLogin
-from security import PART_PROTECTED, PROTECTED, REFRESH_PROTECTED
+from security import PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
 
@@ -61,7 +60,7 @@ async def logout(
     user_agent: str = Header(default=None),
     authorize: AuthJWT = Depends(),
     redis: Redis = Depends(get_redis),
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ) -> dict:
     access_key = await authorize.get_jwt_subject()
     access_token_expires = settings.authjwt_access_token_expires
@@ -92,24 +91,3 @@ async def refresh(
         authorize=authorize, user=current_user, user_agent=user_agent
     )
     return tokens
-
-
-@router.get('/user', response_model=UserInDB, dependencies=PROTECTED)
-async def user(authorize: AuthJWT = PROTECTED[0]):
-    user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim)
-    return current_user
-
-
-@router.get(
-    '/partially-protected', response_model=UserInDB, dependencies=PART_PROTECTED
-)
-async def partially_protected(authorize: AuthJWT = PART_PROTECTED[0]):
-    anonymous = UserInDB(
-        id=uuid.uuid4(),
-        first_name=ANONYMOUS,
-        last_name=ANONYMOUS,
-    )
-    user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim) if user_claim else None
-    return current_user or anonymous

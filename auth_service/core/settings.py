@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # Настройки Postgres
     pg_dsn: PostgresDsn = Field(
-        'postgresql+asyncpg://app:qwe123@localhost:5433/auth', env='PG_DSN'
+        'postgresql+asyncpg://app:123qwe@localhost:5433/auth', env='PG_DSN'
     )
 
     # Настройки AuthJWT

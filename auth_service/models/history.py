@@ -3,7 +3,7 @@ from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from .base_model import CRUDMixin, IDMixin
+from .base import CRUDMixin, IDMixin
 
 
 class History(Base, IDMixin, CRUDMixin):

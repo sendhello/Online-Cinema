@@ -12,7 +12,7 @@ from starlette import status
 async def full_protected(
     authorize: AuthJWT = Depends(),
     redis: Redis = Depends(get_redis),
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ) -> AuthJWT:
     try:
         await authorize.jwt_required()
@@ -29,7 +29,9 @@ async def full_protected(
     if current_access_token not in blocked_access_tokens:
         return authorize
 
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked')
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
+    )
 
 
 async def partial_protected(
@@ -55,7 +57,9 @@ async def partial_protected(
     if current_access_token not in blocked_access_tokens:
         return authorize
 
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked')
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
+    )
 
 
 async def refresh_protected(

@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .base_model import CRUDMixin, IDMixin
+from .base import CRUDMixin, IDMixin
 
 
 class User(Base, IDMixin, CRUDMixin):
@@ -28,6 +28,10 @@ class User(Base, IDMixin, CRUDMixin):
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password, password)
+
+    async def change_password(self, password: str, commit: bool = True) -> bool:
+        self.password = generate_password_hash(password)
+        return await self._save(commit=commit)
 
     @classmethod
     async def get_by_login(cls, username: str) -> 'User':

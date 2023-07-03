@@ -2,7 +2,7 @@ from db.postgres import Base
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-from .base_model import CRUDMixin, IDMixin
+from .base import CRUDMixin, IDMixin
 
 
 class Role(Base, IDMixin, CRUDMixin):

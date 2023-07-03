@@ -1,6 +1,5 @@
-from uuid import UUID
-
-from .base_model import Model
+from .base import Model
+from .mixins import IdMixin
 
 
 class BaseUser(Model):
@@ -13,9 +12,25 @@ class UserLogin(Model):
     password: str
 
 
-class UserCreate(UserLogin, BaseUser):
+class UserCreate(BaseUser, UserLogin):
     pass
 
 
-class UserInDB(BaseUser):
-    id: UUID
+class UserInDB(BaseUser, IdMixin):
+    """Модель пользователя в БД."""
+
+    login: str
+
+
+class UserUpdate(BaseUser):
+    """Модель пользователя для обновления данных."""
+
+    login: str
+    current_password: str
+
+
+class UserChangePassword(Model):
+    """Модель пользователя для смены пароля."""
+
+    current_password: str
+    new_password: str
