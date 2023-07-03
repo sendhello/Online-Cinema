@@ -7,8 +7,8 @@ sys.path.insert(0, f"{os.getcwd()}/auth_service")
 
 import pytest
 from fastapi.testclient import TestClient
+from models import History, User
 from models.base import CRUDMixin
-from models.user import User
 from tests.functional.redis import redis
 
 from auth_service.main import app
@@ -33,7 +33,7 @@ def mock_redis():
 
 @pytest.fixture
 def mock_save():
-    async def inner(self: CRUDMixin, commit):
+    async def inner(self: CRUDMixin, commit: bool = True):
         if getattr(self, 'id', '') is None:
             self.id = UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced')
         if getattr(self, 'created_at', '') is None:
@@ -75,6 +75,19 @@ def mock_change_password():
 
 
 @pytest.fixture
+def mock_get_by_user_id():
+    async def inner(user_id: UUID):
+        history = History(
+            user_id=UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced'),
+            user_agent='testclient',
+        )
+        history.created_at = datetime(2023, 4, 1)
+        return [history]
+
+    return inner
+
+
+@pytest.fixture
 def client(
     monkeypatch,
     mock_redis,
@@ -82,13 +95,14 @@ def client(
     mock_get_by_login,
     mock_check_password,
     mock_change_password,
+    mock_get_by_user_id,
 ):
     # monkeypatch.setattr('schemas.token.get_redis', mock_redis)
     monkeypatch.setattr('db.redis_db.redis', redis)
-    monkeypatch.setattr(CRUDMixin, '_save', mock_save)
+    monkeypatch.setattr(CRUDMixin, 'save', mock_save)
     monkeypatch.setattr(User, 'get_by_login', mock_get_by_login)
     monkeypatch.setattr(User, 'check_password', mock_check_password)
     monkeypatch.setattr(User, 'change_password', mock_change_password)
-    # monkeypatch.setattr(CRUDMixin, '_save', mock_save)
+    monkeypatch.setattr(History, 'get_by_user_id', mock_get_by_user_id)
 
     return TestClient(app)

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
-from models import User
+from models import History, User
 from redis.asyncio import Redis
 from schemas import Tokens, UserCreate, UserInDB, UserLogin
 from security import PROTECTED, REFRESH_PROTECTED
@@ -52,6 +52,13 @@ async def login(
 
     user = UserInDB.from_orm(db_user)
     tokens = await Tokens.create(authorize, user, user_agent)
+
+    db_history = History(
+        user_id=db_user.id,
+        user_agent=user_agent,
+    )
+    await db_history.save()
+
     return tokens
 
 

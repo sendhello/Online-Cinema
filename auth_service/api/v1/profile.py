@@ -4,8 +4,8 @@ from async_fastapi_jwt_auth import AuthJWT
 from constants import ANONYMOUS
 from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
-from models import User
-from schemas import UserChangePassword, UserInDB, UserUpdate
+from models import History, User
+from schemas import HistoryInDB, UserChangePassword, UserInDB, UserUpdate
 from security import PART_PROTECTED, PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
@@ -18,6 +18,14 @@ async def user(authorize: AuthJWT = PROTECTED[0]):
     user_claim = await authorize.get_raw_jwt()
     current_user = UserInDB.parse_obj(user_claim)
     return current_user
+
+
+@router.get('/history', response_model=list[HistoryInDB], dependencies=PROTECTED)
+async def history(authorize: AuthJWT = PROTECTED[0]) -> list[History]:
+    user_claim = await authorize.get_raw_jwt()
+    current_user = UserInDB.parse_obj(user_claim)
+    histories = await History.get_by_user_id(user_id=current_user.id)
+    return histories
 
 
 @router.post('/update', response_model=UserInDB, dependencies=PROTECTED)
