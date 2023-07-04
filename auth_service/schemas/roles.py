@@ -1,5 +1,7 @@
 from .base import Model
 from .mixins import IdMixin
+from models import Rules
+from pydantic import Field
 
 
 class BaseRole(Model):
@@ -9,7 +11,7 @@ class BaseRole(Model):
 class RoleInDB(BaseRole, IdMixin):
     """Модель роли в БД."""
 
-    pass
+    rules: list[Rules] = Field(default_factory=list)
 
 
 class RoleCreate(BaseRole):

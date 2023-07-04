@@ -4,35 +4,38 @@ from .roles import RoleInDB
 
 
 class BaseUser(Model):
+    login: str
+
+
+class PersonalUser(Model):
     first_name: str
     last_name: str
 
 
-class UserLogin(Model):
-    login: str
+class UserLogin(BaseUser):
     password: str
 
 
-class UserCreate(BaseUser, UserLogin):
+class UserCreate(UserLogin, PersonalUser):
     pass
 
 
-class UserInDB(BaseUser, IdMixin):
+class UserCreated(BaseUser, PersonalUser, IdMixin):
+    """Модель пользователя при выводе после регистрации."""
+
+    pass
+
+
+class UserInDB(UserCreated):
     """Модель пользователя в БД."""
 
     login: str
-
-
-class UserWithRole(UserInDB):
-    """Модель пользователя с ролью."""
-
     role: RoleInDB | None
 
 
-class UserUpdate(BaseUser):
+class UserUpdate(BaseUser, PersonalUser):
     """Модель пользователя для обновления данных."""
 
-    login: str
     current_password: str
 
 

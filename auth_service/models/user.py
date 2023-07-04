@@ -31,12 +31,12 @@ class User(Base, IDMixin, CRUDMixin):
 
     async def change_password(self, password: str, commit: bool = True) -> bool:
         self.password = generate_password_hash(password)
-        return await self._save(commit=commit)
+        return await self.save(commit=commit)
 
     @classmethod
     async def get_by_login(cls, username: str) -> 'User':
         async with async_session() as session:
-            request = select(cls).where(cls.login == username)
+            request = select(cls).options(joinedload(cls.role)).where(cls.login == username)
             result = await session.execute(request)
             user = result.scalars().first()
 

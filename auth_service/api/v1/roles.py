@@ -10,6 +10,7 @@ from schemas import HistoryInDB, UserChangePassword, UserInDB, UserUpdate, RoleI
 from security import PART_PROTECTED, PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
+from models import Rules
 
 router = APIRouter()
 
@@ -62,3 +63,36 @@ async def delete_role(id: UUID) -> Role:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Role doesn\'t exists')
 
     return await role.delete()
+
+
+@router.post('/{id}/set_rule', response_model=RoleInDB, dependencies=PROTECTED)
+async def set_rule(id: UUID, rule: Rules) -> Role:
+    role = await Role.get_by_id(id_=id)
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Role doesn\'t exists')
+
+    current_rules = role.rules
+    if rule.value in current_rules:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Role has this rule already')
+
+    role.rules = [*current_rules, rule.value]
+    await role.save()
+
+    return role
+
+
+@router.post('/{id}/remove_rule', response_model=RoleInDB, dependencies=PROTECTED)
+async def set_rule(id: UUID, rule: Rules) -> Role:
+    role = await Role.get_by_id(id_=id)
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Role doesn\'t exists')
+
+    current_rules = [*role.rules]
+    if rule.value not in current_rules:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Role doesn\'t have this rule')
+
+    current_rules.remove(rule.value)
+    role.rules = current_rules
+    await role.save()
+
+    return role

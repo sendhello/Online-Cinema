@@ -10,7 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from models import History, User
 from redis.asyncio import Redis
-from schemas import Tokens, UserCreate, UserInDB, UserLogin
+from schemas import Tokens, UserCreate, UserInDB, UserLogin, UserCreated
 from security import PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
@@ -18,7 +18,7 @@ from starlette import status
 router = APIRouter()
 
 
-@router.post('/signup', response_model=UserInDB, status_code=status.HTTP_201_CREATED)
+@router.post('/signup', response_model=UserCreated, status_code=status.HTTP_201_CREATED)
 async def create_user(user_create: UserCreate) -> UserInDB:
     user_dto = jsonable_encoder(user_create)
     try:

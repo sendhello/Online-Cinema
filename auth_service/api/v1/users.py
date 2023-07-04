@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
 from models import History, User, Role
 from starlette import status
-from schemas import HistoryInDB, UserChangePassword, UserWithRole, UserUpdate, RoleInDB, RoleUpdate, RoleDelete, RoleCreate
+from schemas import HistoryInDB, UserChangePassword, UserInDB, UserUpdate, RoleInDB, RoleUpdate, RoleDelete, RoleCreate
 from security import PART_PROTECTED, PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
@@ -14,13 +14,13 @@ from starlette import status
 router = APIRouter()
 
 
-@router.get('/', response_model=list[UserWithRole], dependencies=PROTECTED)
+@router.get('/', response_model=list[UserInDB], dependencies=PROTECTED)
 async def get_users() -> list[User]:
     users = await User.get_all()
     return users
 
 
-@router.get('/{id}', response_model=UserWithRole, dependencies=PROTECTED)
+@router.get('/{id}', response_model=UserInDB, dependencies=PROTECTED)
 async def get_user(id: UUID) -> User:
     user = await User.get_by_id(id_=id)
     if not user:
@@ -29,7 +29,7 @@ async def get_user(id: UUID) -> User:
     return user
 
 
-@router.delete('/{id}', response_model=UserWithRole, dependencies=PROTECTED)
+@router.delete('/{id}', response_model=UserInDB, dependencies=PROTECTED)
 async def delete_user(id: UUID) -> User:
     user = await User.get_by_id(id_=id)
     if not user:
@@ -38,7 +38,7 @@ async def delete_user(id: UUID) -> User:
     return await user.delete()
 
 
-@router.post('/{id}/set_role', response_model=UserWithRole, dependencies=PROTECTED)
+@router.post('/{id}/set_role', response_model=UserInDB, dependencies=PROTECTED)
 async def set_role(id: UUID, role_id: UUID) -> User:
     user = await User.get_by_id(id_=id)
     if not user:
@@ -54,7 +54,7 @@ async def set_role(id: UUID, role_id: UUID) -> User:
     return user
 
 
-@router.post('/{id}/remove_role', response_model=UserWithRole, dependencies=PROTECTED)
+@router.post('/{id}/remove_role', response_model=UserInDB, dependencies=PROTECTED)
 async def remove_role(id: UUID) -> User:
     user = await User.get_by_id(id_=id)
     if not user:

@@ -88,17 +88,3 @@ async def change_password(
         )
 
     return user
-
-
-@router.get(
-    '/partially-protected', response_model=UserInDB, dependencies=PART_PROTECTED
-)
-async def partially_protected(authorize: AuthJWT = PART_PROTECTED[0]):
-    anonymous = UserInDB(
-        id=uuid.uuid4(),
-        first_name=ANONYMOUS,
-        last_name=ANONYMOUS,
-    )
-    user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim) if user_claim else None
-    return current_user or anonymous
