@@ -54,3 +54,6 @@ black --skip-string-normalization auth_service
 | REDIS_PORT     | 6379                                                | Порт сервера Redis                        |
 | PG_DSN         | postgresql+asyncpg://app:123qwe@localhost:5433/auth | Путь к БД Postgres                        |
 | SECRET_KEY     | secret                                              | Секретный ключ                            |
+
+### Создание суперпользователя
+Суперпользователь создается автоматически с логином и паролем admin = admin

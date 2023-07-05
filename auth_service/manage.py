@@ -44,26 +44,6 @@ async def create_user(login: str, password: str) -> User:
     return user
 
 
-def get_credentials() -> tuple[str, str] | None:
-    login = input('Username (admin): ')
-    if not login:
-        login = 'admin'
-
-    password = getpass.getpass('Password (admin): ')
-    if not password:
-        password = 'admin'
-
-    re_password = getpass.getpass('Repeat password: ')
-    if not re_password:
-        re_password = 'admin'
-
-    if password != re_password:
-        print('Passwords not match')
-        return None
-
-    return login, password
-
-
 app = typer.Typer()
 
 
@@ -100,9 +80,8 @@ def rollback(migrate_hash: str):
 
 
 @app.command()
-def createsuperuser():
+def createsuperuser(login: str = 'admin', password: str = 'admin'):
     """Creating super admin."""
-    login, password = get_credentials()
     loop = asyncio.get_event_loop()
     super_admin = loop.run_until_complete(create_user(login, password))
 

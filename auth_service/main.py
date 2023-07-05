@@ -23,8 +23,8 @@ app = FastAPI(
     title=settings.project_name,
     description='Сервис аутентификации и авторизации',
     version='1.0.0',
-    docs_url='/api/openapi',
-    openapi_url='/api/openapi.json',
+    docs_url='/api/auth/openapi',
+    openapi_url='/api/auth/openapi.json',
     default_response_class=ORJSONResponse,
 )
 
