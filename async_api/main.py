@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 
 from api import router as api_router
 from core.config import settings
-from db import elastic, redis_db
+from db import elastic, redis
 
 
 @asynccontextmanager
@@ -25,8 +25,8 @@ app = FastAPI(
     title=settings.project_name,
     description="Информация о фильмах, жанрах и людях, участвовавших в создании произведения",
     version="1.0.0",
-    docs_url='/api/openapi',
-    openapi_url='/api/openapi.json',
+    docs_url='/api/api/openapi',
+    openapi_url='/api/api/openapi.json',
     default_response_class=ORJSONResponse,
 )
 

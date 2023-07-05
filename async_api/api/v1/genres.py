@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from schemas import Genre
+from api.schemas import Genre
 from api.utils import PaginateQueryParams
 from services.genre import GenreService, get_genre_service
 

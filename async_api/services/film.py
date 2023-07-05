@@ -9,7 +9,7 @@ from redis.asyncio import Redis
 
 from constants import FilmSort, Index, LogicType
 from db.elastic import get_elastic
-from db.redis_db import get_redis
+from db.redis import get_redis
 from models.film import Film
 
 from .base import BaseService

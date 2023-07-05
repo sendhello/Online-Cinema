@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import Query
 
-from schemas import PersonFilm
+from api.schemas import PersonFilm
 from models.person import Person
 from services.film import FilmService
 
