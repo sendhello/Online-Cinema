@@ -3,11 +3,13 @@ import sys
 from datetime import datetime
 from uuid import UUID
 
+from .testdata.data import ROLE_UUID, USER_UUID
+
 sys.path.insert(0, f"{os.getcwd()}/auth_service")
 
 import pytest
 from fastapi.testclient import TestClient
-from models import History, User
+from models import History, Role, Rules, User
 from models.mixins import CRUDMixin
 from tests.functional.redis import redis
 
@@ -35,7 +37,7 @@ def mock_redis():
 def mock_save():
     async def inner(self: CRUDMixin, commit: bool = True):
         if getattr(self, 'id', '') is None:
-            self.id = UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced')
+            self.id = UUID(USER_UUID)
         if getattr(self, 'created_at', '') is None:
             self.created_at = datetime(2023, 4, 1)
         if getattr(self, 'updated_at', '') is None:
@@ -47,17 +49,37 @@ def mock_save():
 
 
 @pytest.fixture
-def mock_get_by_login():
+def mock_user_get_by_login():
     async def inner(username: str):
         user = User(**db[0])
-        user.id = UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced')
+        user.id = UUID(USER_UUID)
         return user
 
     return inner
 
 
 @pytest.fixture
-def mock_check_password():
+def mock_user_get_by_id():
+    async def inner(id_: str):
+        user = User(**db[0])
+        user.id = UUID(USER_UUID)
+        return user
+
+    return inner
+
+
+@pytest.fixture
+def mock_get_user():
+    async def inner(self, commit=True):
+        user = User(**db[0])
+        user.id = UUID(USER_UUID)
+        return user
+
+    return inner
+
+
+@pytest.fixture
+def mock_user_check_password():
     def inner(self, password: str) -> bool:
         return password == 'password'
 
@@ -65,20 +87,63 @@ def mock_check_password():
 
 
 @pytest.fixture
-def mock_change_password():
+def mock_user_change_password():
     async def inner(self, new_password: str) -> bool:
         user = User(**db[0])
-        user.id = UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced')
+        user.id = UUID(USER_UUID)
         return user
 
     return inner
 
 
 @pytest.fixture
-def mock_get_by_user_id():
+def mock_user_get_all():
+    async def inner():
+        user = User(**db[0])
+        user.id = UUID(USER_UUID)
+        return [user]
+
+    return inner
+
+
+@pytest.fixture
+def mock_role_get_by_id():
+    async def inner(id_: str):
+        role = Role(title='manager')
+        role.id = UUID(ROLE_UUID)
+        role.rules = [Rules.user_rules.value]
+        return role
+
+    return inner
+
+
+@pytest.fixture
+def mock_role_get_all():
+    async def inner():
+        role = Role(title='manager')
+        role.id = UUID(ROLE_UUID)
+        role.rules = [Rules.user_rules.value]
+        return [role]
+
+    return inner
+
+
+@pytest.fixture
+def mock_get_role():
+    async def inner(self, commit=True):
+        role = Role(title='manager')
+        role.id = UUID(ROLE_UUID)
+        role.rules = [Rules.user_rules.value]
+        return role
+
+    return inner
+
+
+@pytest.fixture
+def mock_history_get_by_user_id():
     async def inner(user_id: UUID):
         history = History(
-            user_id=UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced'),
+            user_id=user_id,
             user_agent='testclient',
         )
         history.created_at = datetime(2023, 4, 1)
@@ -92,17 +157,29 @@ def client(
     monkeypatch,
     mock_redis,
     mock_save,
-    mock_get_by_login,
-    mock_check_password,
-    mock_change_password,
-    mock_get_by_user_id,
+    mock_user_get_by_login,
+    mock_user_get_by_id,
+    mock_user_check_password,
+    mock_user_change_password,
+    mock_user_get_all,
+    mock_get_user,
+    mock_role_get_by_id,
+    mock_role_get_all,
+    mock_get_role,
+    mock_history_get_by_user_id,
 ):
     # monkeypatch.setattr('schemas.token.get_redis', mock_redis)
     monkeypatch.setattr('db.redis_db.redis', redis)
     monkeypatch.setattr(CRUDMixin, 'save', mock_save)
-    monkeypatch.setattr(User, 'get_by_login', mock_get_by_login)
-    monkeypatch.setattr(User, 'check_password', mock_check_password)
-    monkeypatch.setattr(User, 'change_password', mock_change_password)
-    monkeypatch.setattr(History, 'get_by_user_id', mock_get_by_user_id)
+    monkeypatch.setattr(User, 'delete', mock_get_user)
+    monkeypatch.setattr(User, 'get_by_login', mock_user_get_by_login)
+    monkeypatch.setattr(User, 'get_by_id', mock_user_get_by_id)
+    monkeypatch.setattr(User, 'check_password', mock_user_check_password)
+    monkeypatch.setattr(User, 'change_password', mock_user_change_password)
+    monkeypatch.setattr(User, 'get_all', mock_user_get_all)
+    monkeypatch.setattr(Role, 'get_by_id', mock_role_get_by_id)
+    monkeypatch.setattr(Role, 'get_all', mock_role_get_all)
+    monkeypatch.setattr(Role, 'delete', mock_get_role)
+    monkeypatch.setattr(History, 'get_by_user_id', mock_history_get_by_user_id)
 
     return TestClient(app)

@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 from tests.functional.settings import test_settings  # noqa
-from tests.functional.testdata.auth import new_user
-from tests.functional.utils import generate_tokens
+from tests.functional.testdata.data import USER
+from tests.functional.utils import get_headers, redis_flush
 
 loop = asyncio.get_event_loop()
 
@@ -13,30 +13,26 @@ loop = asyncio.get_event_loop()
     [
         # Ок
         (
-            new_user,
+            USER,
             200,
             {
                 'first_name': 'Тест',
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                 'last_name': 'Тестов',
                 'login': 'test',
+                'role': None,
             },
         ),
     ],
 )
 @pytest.mark.asyncio
 async def test_profile(client, mock_redis, user, status_code, result):
-    tokens = await generate_tokens(user)
-    access_token = tokens['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    response = client.get("api/v1/profile/", headers=headers)
+    response = client.get("api/v1/profile/", headers=await get_headers(user))
     assert response.status_code == status_code
     data = response.json()
     assert data == result
 
-    redis = await mock_redis()
-    await redis.flush()
+    await redis_flush(mock_redis)
 
 
 @pytest.mark.parametrize(
@@ -44,7 +40,7 @@ async def test_profile(client, mock_redis, user, status_code, result):
     [
         # Ок
         (
-            new_user,
+            USER,
             200,
             [
                 {'created_at': '2023-04-01T00:00:00', 'user_agent': 'testclient'},
@@ -54,17 +50,12 @@ async def test_profile(client, mock_redis, user, status_code, result):
 )
 @pytest.mark.asyncio
 async def test_profile_history(client, mock_redis, user, status_code, result):
-    tokens = await generate_tokens(user)
-    access_token = tokens['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    response = client.get("api/v1/profile/history", headers=headers)
+    response = client.get("api/v1/profile/history", headers=await get_headers(user))
     assert response.status_code == status_code
     data = response.json()
     assert data == result
 
-    redis = await mock_redis()
-    await redis.flush()
+    await redis_flush(mock_redis)
 
 
 @pytest.mark.parametrize(
@@ -73,10 +64,10 @@ async def test_profile_history(client, mock_redis, user, status_code, result):
         # Ок
         (
             {
-                'login': new_user['login'],
-                'first_name': new_user['first_name'],
+                'login': USER['login'],
+                'first_name': USER['first_name'],
                 'last_name': 'Брокенов',
-                'current_password': new_user['password'],
+                'current_password': USER['password'],
             },
             200,
             {
@@ -84,23 +75,21 @@ async def test_profile_history(client, mock_redis, user, status_code, result):
                 'login': 'test',
                 'first_name': 'Тест',
                 'last_name': 'Брокенов',
+                'role': None,
             },
         ),
     ],
 )
 @pytest.mark.asyncio
 async def test_profile_update(client, mock_redis, user, status_code, result):
-    tokens = await generate_tokens(user)
-    access_token = tokens['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-
-    response = client.post("api/v1/profile/update", headers=headers, json=user)
+    response = client.post(
+        "api/v1/profile/update", headers=await get_headers(user), json=user
+    )
     assert response.status_code == status_code
     data = response.json()
     assert data == result
 
-    redis = await mock_redis()
-    await redis.flush()
+    await redis_flush(mock_redis)
 
 
 @pytest.mark.parametrize(
@@ -108,9 +97,9 @@ async def test_profile_update(client, mock_redis, user, status_code, result):
     [
         # Ок
         (
-            new_user,
+            USER,
             {
-                'current_password': new_user['password'],
+                'current_password': USER['password'],
                 'new_password': '123qwe',
             },
             200,
@@ -119,6 +108,7 @@ async def test_profile_update(client, mock_redis, user, status_code, result):
                 'login': 'test',
                 'first_name': 'Тест',
                 'last_name': 'Тестов',
+                'role': None,
             },
         ),
     ],
@@ -127,16 +117,13 @@ async def test_profile_update(client, mock_redis, user, status_code, result):
 async def test_profile_change_password(
     client, mock_redis, user, change_password, status_code, result
 ):
-    tokens = await generate_tokens(user)
-    access_token = tokens['access_token']
-    headers = {"Authorization": f"Bearer {access_token}"}
-
     response = client.post(
-        "api/v1/profile/change_password", headers=headers, json=change_password
+        "api/v1/profile/change_password",
+        headers=await get_headers(user),
+        json=change_password,
     )
     assert response.status_code == status_code
     data = response.json()
     assert data == result
 
-    redis = await mock_redis()
-    await redis.flush()
+    await redis_flush(mock_redis)
