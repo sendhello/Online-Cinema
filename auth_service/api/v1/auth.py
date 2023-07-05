@@ -10,7 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from models import History, User
 from redis.asyncio import Redis
-from schemas import Tokens, UserCreate, UserInDB, UserLogin, UserCreated
+from schemas import Tokens, UserCreate, UserCreated, UserInDB, UserLogin
 from security import PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status

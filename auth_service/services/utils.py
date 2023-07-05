@@ -1,4 +1,4 @@
-from constants import Service, Resource, Action
+from constants import Action, Resource, Service
 from schemas import Rule
 
 

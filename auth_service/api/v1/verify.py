@@ -1,21 +1,17 @@
 from uuid import uuid4
-from uuid import uuid4
 
 from async_fastapi_jwt_auth import AuthJWT
-from fastapi import APIRouter, Depends, Header
-from fastapi import HTTPException
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security.http import HTTPBearer
-from redis.asyncio import Redis
-from starlette import status
-
 from constants import ANONYMOUS
 from db.redis_db import get_redis
-from schemas import Rule
-from schemas import UserInDB, RoleInDB, Rule
+from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security.http import HTTPBearer
 from models import Rules
+from redis.asyncio import Redis
+from schemas import RoleInDB, Rule, UserInDB
 from security import PART_PROTECTED
-from services.rules import AdminRules, AnonymousRules, UserRules, SubscriptionRules, rules
+from services.rules import rules
+from starlette import status
 
 router = APIRouter()
 
@@ -42,9 +38,7 @@ async def verify(
 
     if current_user.role is None:
         current_user.role = RoleInDB(
-            id=uuid4(),
-            title=ANONYMOUS,
-            rules=[Rules.anonymous_rules]
+            id=uuid4(), title=ANONYMOUS, rules=[Rules.anonymous_rules]
         )
 
     for text_rule in current_user.role.rules:
@@ -55,5 +49,3 @@ async def verify(
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
     )
-
-

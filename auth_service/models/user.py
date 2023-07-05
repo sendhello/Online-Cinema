@@ -1,9 +1,9 @@
 from db.postgres import Base, async_session
 from sqlalchemy import Column, ForeignKey, String, select
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import joinedload, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
-from sqlalchemy.orm import joinedload
+
 from .mixins import CRUDMixin, IDMixin
 
 
@@ -36,7 +36,9 @@ class User(Base, IDMixin, CRUDMixin):
     @classmethod
     async def get_by_login(cls, username: str) -> 'User':
         async with async_session() as session:
-            request = select(cls).options(joinedload(cls.role)).where(cls.login == username)
+            request = (
+                select(cls).options(joinedload(cls.role)).where(cls.login == username)
+            )
             result = await session.execute(request)
             user = result.scalars().first()
 

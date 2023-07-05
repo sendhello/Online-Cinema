@@ -5,7 +5,9 @@ from fastapi import Depends
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
+from models.role import Rules
 from redis.asyncio import Redis
+from schemas import UserInDB
 from starlette import status
 
 
@@ -82,3 +84,38 @@ async def refresh_protected(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         detail='Signature has blocked',
     )
+
+
+async def admin_protected(
+    authorize: AuthJWT = Depends(),
+    redis: Redis = Depends(get_redis),
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
+) -> AuthJWT:
+    try:
+        await authorize.jwt_required()
+
+    except AuthJWTException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+    access_key = await authorize.get_jwt_subject()
+    blocked_access_tokens = await redis.smembers(access_key)
+    current_access_token = credentials.credentials
+
+    if blocked_access_tokens and current_access_token in blocked_access_tokens:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
+        )
+
+    user_claim = await authorize.get_raw_jwt()
+    current_user = UserInDB.parse_obj(user_claim)
+    if current_user.role is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
+        )
+
+    if Rules.admin_rules not in current_user.role.rules:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
+        )
+
+    return authorize

@@ -1,9 +1,8 @@
 import uuid
 from datetime import datetime
 
-from db.postgres import async_session, Base
+from db.postgres import Base, async_session
 from sqlalchemy import Column, DateTime, select
-
 from sqlalchemy.dialects.postgresql import UUID
 
 

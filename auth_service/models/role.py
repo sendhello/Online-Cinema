@@ -1,9 +1,11 @@
-from db.postgres import Base
-from sqlalchemy import Column, String, Enum as SAEnum
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY
-from .mixins import CRUDMixin, IDMixin
 from enum import Enum
+
+from db.postgres import Base
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.orm import relationship
+
+from .mixins import CRUDMixin, IDMixin
 
 
 class Rules(str, Enum):

@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 ANONYMOUS = 'anonymous'
 
 

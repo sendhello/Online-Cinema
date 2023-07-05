@@ -1,6 +1,13 @@
 # flake8: noqa
-from .history import HistoryInDB
-from .token import Tokens
-from .user import UserChangePassword, UserCreate, UserInDB, UserLogin, UserUpdate, UserInDB, UserCreated
-from .roles import RoleInDB, RoleCreate, RoleUpdate, RoleDelete
 from .checked_entities import Rule
+from .history import HistoryInDB
+from .roles import RoleCreate, RoleDelete, RoleInDB, RoleUpdate
+from .token import Tokens
+from .user import (
+    UserChangePassword,
+    UserCreate,
+    UserCreated,
+    UserInDB,
+    UserLogin,
+    UserUpdate,
+)

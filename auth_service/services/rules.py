@@ -1,8 +1,8 @@
-from constants import Service, Action, Resource
+from constants import Action, Resource, Service
+from models import Rules
 from pydantic.dataclasses import dataclass
 from schemas import Rule
 from services.utils import get_all_rules
-from models import Rules
 
 
 @dataclass
@@ -47,8 +47,8 @@ class SubscriptionRules(UserRules):
 
 @dataclass
 class AdminRules:
-    """Админ имеет права на все.
-    """
+    """Админ имеет права на все."""
+
     rules: list[Rule] = get_all_rules()
 
 

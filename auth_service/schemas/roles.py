@@ -1,7 +1,8 @@
-from .base import Model
-from .mixins import IdMixin
 from models import Rules
 from pydantic import Field
+
+from .base import Model
+from .mixins import IdMixin
 
 
 class BaseRole(Model):
