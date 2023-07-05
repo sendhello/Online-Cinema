@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import asyncio
 import getpass
+import subprocess
 
 import typer
 from fastapi import HTTPException
@@ -67,12 +68,40 @@ app = typer.Typer()
 
 
 @app.command()
-def help():
-    print('RUN: python manage.py createsuperuser')
+def makemigrations(text: str):
+    """Create migration with text."""
+    result = subprocess.run(
+        ['alembic', 'revision', '--autogenerate', '-m', f'"{text}"'],
+        capture_output=True,
+        text=True,
+    )
+    print('Log:', result.stdout)
+    print('Errors:', result.stderr)
+
+
+@app.command()
+def migrate():
+    """Upgrade migration."""
+    result = subprocess.run(
+        ['alembic', 'upgrade', 'head'], capture_output=True, text=True
+    )
+    print('Log:', result.stdout)
+    print('Errors:', result.stderr)
+
+
+@app.command()
+def rollback(migrate_hash: str):
+    """Downgrade migration."""
+    result = subprocess.run(
+        ['alembic', 'downgrade', migrate_hash], capture_output=True, text=True
+    )
+    print('Log:', result.stdout)
+    print('Errors:', result.stderr)
 
 
 @app.command()
 def createsuperuser():
+    """Creating super admin."""
     login, password = get_credentials()
     loop = asyncio.get_event_loop()
     super_admin = loop.run_until_complete(create_user(login, password))
