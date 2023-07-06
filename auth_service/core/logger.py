@@ -1,13 +1,8 @@
-from pydantic import BaseSettings, Field
-
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        },
+        'verbose': {'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s'},
         'default': {
             '()': 'uvicorn.logging.DefaultFormatter',
             'fmt': '%(levelprefix)s %(message)s',
@@ -15,7 +10,7 @@ LOGGING = {
         },
         'access': {
             '()': 'uvicorn.logging.AccessFormatter',
-            'fmt': "%(levelprefix)s %(client_addr)s - '%(request_line)s' %(status_code)s",
+            'fmt': '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',
         },
     },
     'handlers': {
