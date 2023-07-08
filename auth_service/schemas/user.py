@@ -1,10 +1,12 @@
+from pydantic import EmailStr
+
 from .base import Model
 from .mixins import IdMixin
 from .roles import RoleInDB
 
 
 class BaseUser(Model):
-    login: str
+    email: EmailStr
 
 
 class PersonalUser(Model):
@@ -29,7 +31,7 @@ class UserCreated(BaseUser, PersonalUser, IdMixin):
 class UserInDB(UserCreated):
     """Модель пользователя в БД."""
 
-    login: str
+    login: str | None
     role: RoleInDB | None
 
 

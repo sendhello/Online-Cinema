@@ -15,6 +15,7 @@ from security import PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
 
+
 router = APIRouter()
 
 
@@ -39,7 +40,7 @@ async def login(
     user_agent: str = Header(default=None),
     authorize: AuthJWT = Depends(),
 ) -> Tokens:
-    db_user = await User.get_by_login(username=user_login.login)
+    db_user = await User.get_by_email(email=user_login.email)
     if db_user is None:
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED, detail='Incorrect username or password'

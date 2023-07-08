@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
+from typing import Self
 
-from db.postgres import Base, async_session
+from db.postgres import async_session
 from sqlalchemy import Column, DateTime, select
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -10,7 +11,7 @@ class CRUDMixin:
     """Mixin-класс предоставляющий частые CRUD операции над моделями."""
 
     @classmethod
-    async def create(cls, commit=True, **kwargs):
+    async def create(cls, commit=True, **kwargs) -> Self:
         instance = cls(**kwargs)
         return await instance.save(commit=commit)
 
@@ -38,9 +39,9 @@ class CRUDMixin:
         return self
 
     @classmethod
-    async def get_all(cls) -> list[Base]:
+    async def get_all(cls, page: int = 1, page_size: int = 20) -> list[Self]:
         async with async_session() as session:
-            request = select(cls)
+            request = select(cls).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
             entities = result.scalars().all()
 
@@ -59,7 +60,7 @@ class IDMixin:
     updated_at = Column(DateTime, onupdate=datetime.utcnow())
 
     @classmethod
-    async def get_by_id(cls, id_: UUID) -> Base:
+    async def get_by_id(cls, id_: UUID) -> Self:
         async with async_session() as session:
             request = select(cls).where(cls.id == id_)
             result = await session.execute(request)

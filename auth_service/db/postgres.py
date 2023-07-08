@@ -3,12 +3,13 @@ from core.settings import settings
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+
 # Создаём базовый класс для будущих моделей
 Base = declarative_base()
 
 # Создаём движок
 # Настройки подключения к БД передаём из переменных окружения, которые заранее загружены в файл настроек
-engine = create_async_engine(settings.pg_dsn, echo=True, future=True)
+engine = create_async_engine(settings.pg_dsn, echo=settings.debug, future=True)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

@@ -7,6 +7,7 @@ from .roles import router as roles_router
 from .users import router as users_router
 from .verify import router as verify_router
 
+
 router = APIRouter()
 router.include_router(auth_router, prefix='/auth', tags=['Auth'])
 router.include_router(verify_router, prefix='/verify', tags=['Verify'])

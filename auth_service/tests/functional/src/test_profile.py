@@ -5,6 +5,7 @@ from tests.functional.settings import test_settings  # noqa
 from tests.functional.testdata.data import USER
 from tests.functional.utils import get_headers, redis_flush
 
+
 loop = asyncio.get_event_loop()
 
 
@@ -19,8 +20,9 @@ loop = asyncio.get_event_loop()
                 'first_name': 'Тест',
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                 'last_name': 'Тестов',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'role': None,
+                'login': None,
             },
         ),
     ],
@@ -64,7 +66,7 @@ async def test_profile_history(client, mock_redis, user, status_code, result):
         # Ок
         (
             {
-                'login': USER['login'],
+                'email': USER['email'],
                 'first_name': USER['first_name'],
                 'last_name': 'Брокенов',
                 'current_password': USER['password'],
@@ -72,10 +74,11 @@ async def test_profile_history(client, mock_redis, user, status_code, result):
             200,
             {
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'first_name': 'Тест',
                 'last_name': 'Брокенов',
                 'role': None,
+                'login': None,
             },
         ),
     ],
@@ -105,10 +108,11 @@ async def test_profile_update(client, mock_redis, user, status_code, result):
             200,
             {
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'first_name': 'Тест',
                 'last_name': 'Тестов',
                 'role': None,
+                'login': None,
             },
         ),
     ],

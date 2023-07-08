@@ -1,38 +1,30 @@
 #!/usr/bin/python
 import asyncio
-import getpass
 import subprocess
 
 import typer
-from fastapi import HTTPException
 from models import Role, Rules, User
 from sqlalchemy.exc import IntegrityError
-from starlette import status
 
 
-async def create_user(login: str, password: str) -> User:
+async def create_user(email: str, password: str) -> User:
     try:
         user = await User.create(
-            login=login,
+            email=email,
             password=password,
             first_name='',
             last_name='',
         )
 
     except IntegrityError:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail='User with such login is registered already',
-        )
+        user = await User.get_by_email(email)
+        return user
 
     try:
         role = await Role.create(title='super_admin')
 
     except IntegrityError:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail='Role with such title already exists',
-        )
+        return user
 
     rule = Rules.admin_rules
     role.rules = [rule.value]
@@ -80,12 +72,12 @@ def rollback(migrate_hash: str):
 
 
 @app.command()
-def createsuperuser(login: str = 'admin', password: str = 'admin'):
+def createsuperuser(email: str = 'admin@admin.email', password: str = 'admin'):
     """Creating super admin."""
     loop = asyncio.get_event_loop()
-    super_admin = loop.run_until_complete(create_user(login, password))
+    super_admin = loop.run_until_complete(create_user(email, password))
 
-    print(f'Super user "{super_admin.login}" created')
+    print(f'Super user "{super_admin.email}" created')
 
 
 if __name__ == "__main__":

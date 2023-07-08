@@ -1,4 +1,5 @@
 from hashlib import md5
+from typing import Self
 
 import orjson
 from async_fastapi_jwt_auth import AuthJWT
@@ -14,9 +15,7 @@ class Tokens(Model):
     refresh_token: str
 
     @classmethod
-    async def create(
-        cls, authorize: AuthJWT, user: UserInDB, user_agent: str
-    ) -> 'Tokens':
+    async def create(cls, authorize: AuthJWT, user: UserInDB, user_agent: str) -> Self:
         user_claims = orjson.loads(user.json())
         user_agent_hash = md5(user_agent.encode()).hexdigest()
 

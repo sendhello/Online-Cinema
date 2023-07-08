@@ -1,16 +1,22 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from models import Role, User
 from schemas import UserInDB
 from starlette import status
+
+from ..utils import PaginateQueryParams
+
 
 router = APIRouter()
 
 
 @router.get('/', response_model=list[UserInDB])
-async def get_users() -> list[User]:
-    users = await User.get_all()
+async def get_users(
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)]
+) -> list[User]:
+    users = await User.get_all(page=paginate.page, page_size=paginate.page_size)
     return users
 
 

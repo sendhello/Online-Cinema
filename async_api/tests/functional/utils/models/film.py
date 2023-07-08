@@ -1,5 +1,5 @@
 from faker import Faker
-
+from typing import Self
 from . import EsModel, ResponseModel
 
 fake = Faker()
@@ -22,7 +22,7 @@ class EsPerson(EsModel):
     name: str
 
     @classmethod
-    def create_fake(cls, **kwargs):
+    def create_fake(cls, **kwargs) -> Self:
         return cls(
             id=kwargs.get('id', fake.uuid4()),
             name=kwargs.get('name', fake.name()),
@@ -41,7 +41,7 @@ class EsFilm(EsModel):
     genre: list[str]
 
     @classmethod
-    def create_fake(cls, **kwargs):
+    def create_fake(cls, **kwargs) -> Self:
         actors = [EsPerson.create_fake(**kwargs) for _ in range(fake.pyint(min_value=1, max_value=10))]
         writers = [EsPerson.create_fake(**kwargs) for _ in range(fake.pyint(min_value=1, max_value=10))]
         return cls(
