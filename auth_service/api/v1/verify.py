@@ -7,11 +7,13 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from models import Rules
+from pydantic import EmailStr
 from redis.asyncio import Redis
 from schemas import RoleInDB, Rule, UserInDB
 from security import PART_PROTECTED
 from services.rules import rules
 from starlette import status
+
 
 router = APIRouter()
 
@@ -27,6 +29,7 @@ async def verify(
     anonymous = UserInDB(
         id=uuid4(),
         login=ANONYMOUS,
+        email=EmailStr(f"{ANONYMOUS}@{ANONYMOUS}.email"),
         first_name=ANONYMOUS,
         last_name=ANONYMOUS,
     )

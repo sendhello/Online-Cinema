@@ -20,12 +20,13 @@
 
 ### Запуск сервиса
 ```commandline
+# Из корня проекта
 docker compose up --build
 ```
 
 ### Документация
-* http://127.0.0.1/api/openapi (Swagger)
-* http://127.0.0.1/api/openapi.json (openapi)
+* http://127.0.0.1/api/auth/openapi (Swagger)
+* http://127.0.0.1/api/auth/openapi.json (openapi)
 
 ## Описание дополнительных методов сервиса
 

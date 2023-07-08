@@ -1,15 +1,17 @@
 """"init"
-Revision ID: c144f4ef8443
+
+Revision ID: b747a9c3fe95
 Revises:
-Create Date: 2023-07-05 22:04:38.553436
+Create Date: 2023-07-09 01:22:11.630965
+
 """
 import sqlalchemy as sa
 from alembic import op
-from db import postgres  # noqa
 from sqlalchemy.dialects import postgresql
 
+
 # revision identifiers, used by Alembic.
-revision = 'c144f4ef8443'
+revision = 'b747a9c3fe95'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,7 +32,8 @@ def upgrade() -> None:
     )
     op.create_table(
         'users',
-        sa.Column('login', sa.String(length=255), nullable=False),
+        sa.Column('login', sa.String(length=255), nullable=True),
+        sa.Column('email', sa.String(length=255), nullable=False),
         sa.Column('password', sa.String(length=255), nullable=False),
         sa.Column('first_name', sa.String(length=50), nullable=True),
         sa.Column('last_name', sa.String(length=50), nullable=True),
@@ -43,20 +46,18 @@ def upgrade() -> None:
             ['roles.id'],
         ),
         sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('email'),
         sa.UniqueConstraint('id'),
         sa.UniqueConstraint('login'),
     )
     op.create_table(
         'history',
         sa.Column('user_agent', sa.String(length=255), nullable=False),
-        sa.Column('user_id', sa.UUID(), nullable=True),
+        sa.Column('user_id', sa.UUID(), nullable=False),
         sa.Column('id', sa.UUID(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ['user_id'],
-            ['users.id'],
-        ),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('id'),
     )

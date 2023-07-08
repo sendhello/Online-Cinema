@@ -5,6 +5,7 @@ from tests.functional.settings import test_settings  # noqa
 from tests.functional.testdata.data import USER
 from tests.functional.utils import generate_tokens, get_headers, redis_flush
 
+
 loop = asyncio.get_event_loop()
 
 
@@ -17,7 +18,7 @@ loop = asyncio.get_event_loop()
             201,
             {
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'first_name': 'Тест',
                 'last_name': 'Тестов',
             },
@@ -39,7 +40,7 @@ async def test_create_user(client, mock_redis, user, status_code, result):
     [
         # Ок
         (
-            {'login': USER['login'], 'password': USER['password']},
+            {'email': USER['email'], 'password': USER['password']},
             200,
             ['access_token', 'refresh_token'],
         ),

@@ -5,6 +5,7 @@ from async_fastapi_jwt_auth import AuthJWT
 from core.logger import LOGGING
 from pydantic import BaseSettings, Field, PostgresDsn
 
+
 # Применяем настройки логирования
 logging_config.dictConfig(LOGGING)
 
@@ -12,6 +13,9 @@ logging_config.dictConfig(LOGGING)
 class Settings(BaseSettings):
     # Название проекта. Используется в Swagger-документации
     project_name: str = Field('Auth', env='PROJECT_NAME')
+
+    # Общие настройки
+    debug: bool = Field(False, env='DEBUG')
 
     # Настройки Redis
     redis_host: str = Field('127.0.0.1', env='REDIS_HOST')

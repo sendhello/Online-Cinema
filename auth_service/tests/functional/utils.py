@@ -44,7 +44,7 @@ async def get_headers(user):
 async def get_admin_headers():
     admin = UserInDB(
         id=UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced'),
-        login='admin',
+        email='admin@admin.ru',
         first_name='',
         last_name='',
         role=RoleInDB(

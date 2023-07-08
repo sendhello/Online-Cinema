@@ -1,18 +1,24 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from models import Role, Rules
 from schemas import RoleCreate, RoleInDB, RoleUpdate
 from sqlalchemy.exc import IntegrityError
 from starlette import status
 
+from ..utils import PaginateQueryParams
+
+
 router = APIRouter()
 
 
 @router.get('/', response_model=list[RoleInDB])
-async def get_roles() -> list[Role]:
-    roles = await Role.get_all()
+async def get_roles(
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)]
+) -> list[Role]:
+    roles = await Role.get_all(page=paginate.page, page_size=paginate.page_size)
     return roles
 
 

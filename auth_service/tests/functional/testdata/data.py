@@ -1,5 +1,5 @@
 USER = {
-    'login': 'test',
+    'email': 'test@test.ru',
     'password': 'password',
     'first_name': 'Тест',
     'last_name': 'Тестов',

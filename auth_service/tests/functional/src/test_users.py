@@ -4,6 +4,7 @@ import pytest
 from tests.functional.settings import test_settings  # noqa
 from tests.functional.utils import get_admin_headers, redis_flush
 
+
 loop = asyncio.get_event_loop()
 
 
@@ -18,8 +19,9 @@ loop = asyncio.get_event_loop()
                     'first_name': 'Тест',
                     'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                     'last_name': 'Тестов',
-                    'login': 'test',
+                    'email': 'test@test.ru',
                     'role': None,
+                    'login': None,
                 }
             ],
         ),
@@ -46,8 +48,9 @@ async def test_users_get(client, mock_redis, status_code, result):
                 'first_name': 'Тест',
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                 'last_name': 'Тестов',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'role': None,
+                'login': None,
             },
         ),
     ],
@@ -73,8 +76,9 @@ async def test_users_get_id(client, mock_redis, id_, status_code, result):
                 'first_name': 'Тест',
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                 'last_name': 'Тестов',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'role': None,
+                'login': None,
             },
         ),
     ],
@@ -101,8 +105,9 @@ async def test_users_delete(client, mock_redis, id_, status_code, result):
                 'first_name': 'Тест',
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                 'last_name': 'Тестов',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'role': None,
+                'login': None,
             },
         ),
     ],
@@ -131,8 +136,9 @@ async def test_users_set_role(client, mock_redis, id_, role_id, status_code, res
                 'first_name': 'Тест',
                 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced',
                 'last_name': 'Тестов',
-                'login': 'test',
+                'email': 'test@test.ru',
                 'role': None,
+                'login': None,
             },
         ),
     ],

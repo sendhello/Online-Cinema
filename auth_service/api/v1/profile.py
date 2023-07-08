@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -5,6 +7,9 @@ from models import History, User
 from schemas import HistoryInDB, UserChangePassword, UserInDB, UserUpdate
 from sqlalchemy.exc import IntegrityError
 from starlette import status
+
+from ..utils import PaginateQueryParams
+
 
 router = APIRouter()
 
@@ -17,10 +22,17 @@ async def user(authorize: AuthJWT = Depends()):
 
 
 @router.get('/history', response_model=list[HistoryInDB])
-async def history(authorize: AuthJWT = Depends()) -> list[History]:
+async def history(
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+    authorize: AuthJWT = Depends(),
+) -> list[History]:
     user_claim = await authorize.get_raw_jwt()
     current_user = UserInDB.parse_obj(user_claim)
-    histories = await History.get_by_user_id(user_id=current_user.id)
+    histories = await History.get_by_user_id(
+        user_id=current_user.id,
+        page=paginate.page,
+        page_size=paginate.page_size,
+    )
     return histories
 
 
@@ -29,7 +41,7 @@ async def change_user(user_update: UserUpdate, authorize: AuthJWT = Depends()):
     user_claim = await authorize.get_raw_jwt()
     current_user = UserInDB.parse_obj(user_claim)
 
-    db_user = await User.get_by_login(username=current_user.login)
+    db_user = await User.get_by_email(email=current_user.email)
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect userdata'
@@ -61,7 +73,7 @@ async def change_password(
     user_claim = await authorize.get_raw_jwt()
     current_user = UserInDB.parse_obj(user_claim)
 
-    db_user = await User.get_by_login(username=current_user.login)
+    db_user = await User.get_by_email(email=current_user.email)
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect userdata'

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from .testdata.data import ROLE_UUID, USER_UUID
 
+
 sys.path.insert(0, f"{os.getcwd()}/auth_service")
 
 import pytest
@@ -15,9 +16,10 @@ from tests.functional.redis import redis
 
 from auth_service.main import app
 
+
 db = [
     {
-        'login': 'test',
+        'email': 'test@test.ru',
         'password': 'password',
         'first_name': 'Тест',
         'last_name': 'Тестов',
@@ -49,8 +51,8 @@ def mock_save():
 
 
 @pytest.fixture
-def mock_user_get_by_login():
-    async def inner(username: str):
+def mock_user_get_by_email():
+    async def inner(email: str):
         user = User(**db[0])
         user.id = UUID(USER_UUID)
         return user
@@ -98,7 +100,7 @@ def mock_user_change_password():
 
 @pytest.fixture
 def mock_user_get_all():
-    async def inner():
+    async def inner(page, page_size):
         user = User(**db[0])
         user.id = UUID(USER_UUID)
         return [user]
@@ -119,7 +121,7 @@ def mock_role_get_by_id():
 
 @pytest.fixture
 def mock_role_get_all():
-    async def inner():
+    async def inner(page, page_size):
         role = Role(title='manager')
         role.id = UUID(ROLE_UUID)
         role.rules = [Rules.user_rules.value]
@@ -141,7 +143,7 @@ def mock_get_role():
 
 @pytest.fixture
 def mock_history_get_by_user_id():
-    async def inner(user_id: UUID):
+    async def inner(user_id: UUID, page, page_size):
         history = History(
             user_id=user_id,
             user_agent='testclient',
@@ -157,7 +159,7 @@ def client(
     monkeypatch,
     mock_redis,
     mock_save,
-    mock_user_get_by_login,
+    mock_user_get_by_email,
     mock_user_get_by_id,
     mock_user_check_password,
     mock_user_change_password,
@@ -172,7 +174,7 @@ def client(
     monkeypatch.setattr('db.redis_db.redis', redis)
     monkeypatch.setattr(CRUDMixin, 'save', mock_save)
     monkeypatch.setattr(User, 'delete', mock_get_user)
-    monkeypatch.setattr(User, 'get_by_login', mock_user_get_by_login)
+    monkeypatch.setattr(User, 'get_by_email', mock_user_get_by_email)
     monkeypatch.setattr(User, 'get_by_id', mock_user_get_by_id)
     monkeypatch.setattr(User, 'check_password', mock_user_check_password)
     monkeypatch.setattr(User, 'change_password', mock_user_change_password)
