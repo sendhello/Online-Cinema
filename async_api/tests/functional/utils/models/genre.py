@@ -1,5 +1,6 @@
-from .base_models import IDMixin, UUIDMixin
 from pydantic import BaseModel
+
+from .base_models import IDMixin, UUIDMixin
 
 
 class GenreUUID(UUIDMixin):

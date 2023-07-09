@@ -2,35 +2,38 @@ import logging
 from functools import lru_cache
 
 import orjson
-from elasticsearch import AsyncElasticsearch
-from fastapi import Depends
-from redis.asyncio import Redis
-
 from constants import Index
 from db.elastic import get_elastic
 from db.redis import get_redis
+from elasticsearch import AsyncElasticsearch
+from fastapi import Depends
 from models.person import Person
+from redis.asyncio import Redis
 
 from .base import BaseService
 from .elastic_db import ElasticRequest, QueryFilter, QueryType
 from .redis_cache import RedisCache
+
 
 logger = logging.getLogger(__name__)
 
 
 class PersonService(BaseService):
     async def filter(
-            self,
-            page_size: int,
-            page_number: int,
-            query: str | None = None,
+        self,
+        page_size: int,
+        page_number: int,
+        query: str | None = None,
     ) -> list[Person]:
         model_name = self.request.model.__name__.lower()
         key = f'filter:{model_name}-{page_size}-{page_number}-{query}'
 
         data = await self.cache.get_from_cache(key)
         if data is not None:
-            return [self.request.model.parse_obj(raw_entity) for raw_entity in orjson.loads(data)]
+            return [
+                self.request.model.parse_obj(raw_entity)
+                for raw_entity in orjson.loads(data)
+            ]
 
         filters = []
 
@@ -57,8 +60,8 @@ class PersonService(BaseService):
 
 @lru_cache()
 def get_person_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+    redis: Redis = Depends(get_redis),
+    elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> PersonService:
     return PersonService(
         cache=RedisCache(redis),

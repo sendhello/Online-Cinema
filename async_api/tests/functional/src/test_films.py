@@ -1,9 +1,9 @@
+from http import HTTPStatus
+from typing import Callable
+
 import pytest
 from pydantic import BaseModel, ValidationError
 from pydantic.main import ModelMetaclass
-
-from http import HTTPStatus
-from typing import Callable
 
 from ..testdata.fims_data import ES_FILMS_DATA
 from ..utils.models.film import EsFilm, ResponseFilm, ResponseShortFilm
@@ -24,7 +24,6 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс получения 20 фильмов
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -34,7 +33,6 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс получения фильмов с 3-й страницы
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -44,14 +42,19 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс получения фильмов с жанром "Drama"
         (
             [
-                *[EsFilm.create_fake(genre=['Action', 'Quest']).dict() for _ in range(200)],
+                *[
+                    EsFilm.create_fake(genre=['Action', 'Quest']).dict()
+                    for _ in range(200)
+                ],
                 *[EsFilm.create_fake(genre=['Comedy']).dict() for _ in range(200)],
-                *[EsFilm.create_fake(genre=['Action', 'Drama']).dict() for _ in range(30)],
-                *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(11)]
+                *[
+                    EsFilm.create_fake(genre=['Action', 'Drama']).dict()
+                    for _ in range(30)
+                ],
+                *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(11)],
             ],
             {'genre': 'Drama'},
             HTTPStatus.OK,
@@ -59,7 +62,6 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс получения первых 20 фильмов отсортированных по-возрастанию
         (
             [
@@ -75,7 +77,6 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {'imdb_rating': 8.0},
         ),
-
         # Кейс получения первых 20 фильмов отсортированных по-убыванию
         (
             [
@@ -91,25 +92,28 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {'imdb_rating': 55.5},
         ),
-
         # Кейс со всеми параметрами одновременно
         (
             [
                 *[EsFilm.create_fake().dict() for _ in range(300)],
-                *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(40)]
+                *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(40)],
             ],
-            {'sort': '-imdb_rating', 'page_size': 20, 'genre': 'Drama', 'page_number': 2},
+            {
+                'sort': '-imdb_rating',
+                'page_size': 20,
+                'genre': 'Drama',
+                'page_number': 2,
+            },
             HTTPStatus.OK,
             20,
             ResponseShortFilm,
             {},
         ),
-
         # Кейс с отсутствием фильмов по фильтрам
         (
             [
                 *[EsFilm.create_fake(genre=['Action']).dict() for _ in range(300)],
-                *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(40)]
+                *[EsFilm.create_fake(genre=['Drama']).dict() for _ in range(40)],
             ],
             {'genre': 'Comedy'},
             HTTPStatus.OK,
@@ -117,22 +121,21 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-    ]
+    ],
 )
 @pytest_mark
 async def test_get_films(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        url_params: dict,  # параметры запроса
-        res_status: int,  # код ответа
-        res_count: str,  # количество элементов в ответе
-        res_model: ModelMetaclass,  # модель ответа
-        check_model_attrs: dict  # условия для сравнения атрибутов модели, например {'imdb_rating': '10'}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    url_params: dict,  # параметры запроса
+    res_status: int,  # код ответа
+    res_count: str,  # количество элементов в ответе
+    res_model: ModelMetaclass,  # модель ответа
+    check_model_attrs: dict,  # условия для сравнения атрибутов модели, например {'imdb_rating': '10'}
 ):
-    """Тест: /api/v1/films
-    """
+    """Тест: /api/v1/films"""
     await es_write_data(es_data, 'movies')
 
     res = await service_get_data('films/', url_params)
@@ -157,7 +160,6 @@ async def test_get_films(
             ResponseShortFilm,
             {'uuid': 123456},
         ),
-
         # Кейс: ошибка валидации поля title
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -167,7 +169,6 @@ async def test_get_films(
             ResponseShortFilm,
             {'title': []},
         ),
-
         # Кейс: ошибка валидации поля imdb_rating
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -177,22 +178,21 @@ async def test_get_films(
             ResponseShortFilm,
             {'imdb_rating': 'good'},
         ),
-    ]
+    ],
 )
 @pytest_mark
 async def test_get_films_no_valid(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        url_params: dict,  # параметры запроса
-        res_status: int,  # код ответа
-        res_count: str,  # количество элементов в ответе
-        res_model: ModelMetaclass,  # модель ответа
-        change_attrs: dict  # подмена атрибута ответа, например {'imdb_rating': []}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    url_params: dict,  # параметры запроса
+    res_status: int,  # код ответа
+    res_count: str,  # количество элементов в ответе
+    res_model: ModelMetaclass,  # модель ответа
+    change_attrs: dict,  # подмена атрибута ответа, например {'imdb_rating': []}
 ):
-    """Тест: /api/v1/films
-    """
+    """Тест: /api/v1/films"""
     await es_write_data(es_data, 'movies')
 
     res = await service_get_data('films/', url_params)
@@ -220,22 +220,21 @@ async def test_get_films_no_valid(
             ResponseShortFilm,
             {'imdb_rating': 15.0},
         ),
-    ]
+    ],
 )
 @pytest_mark
 async def test_get_films_with_cache(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        url_params: dict,  # параметры запроса
-        res_status: int,  # код ответа
-        res_count: str,  # количество элементов в ответе
-        res_model: ModelMetaclass,  # модель ответа
-        check_model_attrs: dict  # условия для сравнения атрибутов модели, например {'imdb_rating': '10'}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    url_params: dict,  # параметры запроса
+    res_status: int,  # код ответа
+    res_count: str,  # количество элементов в ответе
+    res_model: ModelMetaclass,  # модель ответа
+    check_model_attrs: dict,  # условия для сравнения атрибутов модели, например {'imdb_rating': '10'}
 ):
-    """Тест: /api/v1/films
-    """
+    """Тест: /api/v1/films"""
     await es_write_data(es_data, 'movies')
     res1 = await service_get_data('films/', url_params)
     assert res1.status == res_status
@@ -247,7 +246,9 @@ async def test_get_films_with_cache(
 
     # Загружаем еще 20 фильмов - теперь на 2 странице рейтинг уже не 15,
     # но данные берутся из кеша, поэтому ничего не поменялось
-    await es_write_data([EsFilm.create_fake(imdb_rating=99).dict() for _ in range(20)], 'movies')
+    await es_write_data(
+        [EsFilm.create_fake(imdb_rating=99).dict() for _ in range(20)], 'movies'
+    )
     res2 = await service_get_data('films/', url_params)
     assert res1 == res2
 
@@ -278,7 +279,6 @@ async def test_get_films_with_cache(
             ResponseFilm,
             {},
         ),
-
         # Кейс получения фильма по несуществующему id
         (
             [
@@ -291,22 +291,21 @@ async def test_get_films_with_cache(
             BaseModel,
             {},
         ),
-    ]
+    ],
 )
 @pytest_mark
 async def test_get_film_by_id(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        id_: str,  # id запроса
-        control_data: dict,  # фиксированные данные фильма
-        res_status: int,  # код ответа
-        res_model: ModelMetaclass,  # модель ответа
-        check_model_attrs: dict  # условия для сравнения атрибутов модели, например {'imdb_rating': '10'}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    id_: str,  # id запроса
+    control_data: dict,  # фиксированные данные фильма
+    res_status: int,  # код ответа
+    res_model: ModelMetaclass,  # модель ответа
+    check_model_attrs: dict,  # условия для сравнения атрибутов модели, например {'imdb_rating': '10'}
 ):
-    """Тест: /api/v1/films/<id>
-    """
+    """Тест: /api/v1/films/<id>"""
     await es_write_data(es_data, 'movies')
 
     control_film = res_model(
@@ -315,7 +314,10 @@ async def test_get_film_by_id(
         imdb_rating=control_data.get('imdb_rating'),
         description=control_data.get('description'),
         genres=control_data.get('genre'),
-        cast=[*control_data.get('actors_names', []), *control_data.get('writers_names', [])],
+        cast=[
+            *control_data.get('actors_names', []),
+            *control_data.get('writers_names', []),
+        ],
     )
     res = await service_get_data(f'films/{id_}')
 
@@ -335,7 +337,6 @@ async def test_get_film_by_id(
             ResponseFilm,
             {'title': None},
         ),
-
         # Кейс: Невалидное значение description
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -343,7 +344,6 @@ async def test_get_film_by_id(
             ResponseFilm,
             {'description': []},
         ),
-
         # Кейс: Невалидное значение imdb_rating
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -351,7 +351,6 @@ async def test_get_film_by_id(
             ResponseFilm,
             {'imdb_rating': None},
         ),
-
         # Кейс: Невалидное значение genres
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -359,7 +358,6 @@ async def test_get_film_by_id(
             ResponseFilm,
             {'genres': 'Comedy'},
         ),
-
         # Кейс: Невалидное значение cast
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -367,21 +365,19 @@ async def test_get_film_by_id(
             ResponseFilm,
             {'cast': 'Antony Boss'},
         ),
-
-    ]
+    ],
 )
 @pytest_mark
 async def test_get_film_by_id_not_valid(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        res_status: int,  # код ответа
-        res_model: ModelMetaclass,  # модель ответа
-        change_attrs: dict  # подмена атрибута ответа, например {'imdb_rating': []}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    res_status: int,  # код ответа
+    res_model: ModelMetaclass,  # модель ответа
+    change_attrs: dict,  # подмена атрибута ответа, например {'imdb_rating': []}
 ):
-    """Тест: /api/v1/films/<id>
-    """
+    """Тест: /api/v1/films/<id>"""
     await es_write_data(es_data, 'movies')
 
     films = await service_get_data('films/')

@@ -6,8 +6,8 @@ class Person(Model, UUIDMixin):
 
 
 class Film(Model, UUIDMixin):
-    """Модель фильма из БД.
-    """
+    """Модель фильма из БД."""
+
     title: str
     imdb_rating: float
     description: str | None

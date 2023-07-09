@@ -1,19 +1,20 @@
 from contextlib import asynccontextmanager
 
+from api import router as api_router
+from core.settings import settings
+from db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
-from api import router as api_router
-from core.config import settings
-from db import elastic, redis
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
-    elastic.es = AsyncElasticsearch(hosts=[f'http://{settings.elastic_host}:{settings.elastic_port}'])
+    elastic.es = AsyncElasticsearch(
+        hosts=[f'http://{settings.elastic_host}:{settings.elastic_port}']
+    )
     yield
 
     await redis.redis.close()

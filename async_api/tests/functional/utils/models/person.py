@@ -1,6 +1,7 @@
+from pydantic import BaseModel
+
 from .base_models import IDMixin, UUIDMixin
 from .film import EsFilm
-from pydantic import BaseModel
 
 
 class PersonUUID(UUIDMixin):

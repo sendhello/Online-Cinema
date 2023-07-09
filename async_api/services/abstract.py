@@ -1,34 +1,31 @@
 import logging
 from abc import ABC, abstractmethod
 
+
 logger = logging.getLogger(__name__)
 
 
 class AbstractCache(ABC):
     @abstractmethod
     async def put_to_cache(self, key, data):
-        """Метод записи в кеш.
-        """
+        """Метод записи в кеш."""
         pass
 
     @abstractmethod
     async def get_from_cache(self, key):
-        """Метод получения данных из кеша.
-        """
+        """Метод получения данных из кеша."""
         pass
 
 
 class AbstractDBRequest(ABC):
     @abstractmethod
     async def get_by_id(self, id_: str):
-        """Метод получения объекта по id.
-        """
+        """Метод получения объекта по id."""
         pass
 
     @abstractmethod
     async def filter(self, **kwargs):
-        """Метод получения списка объектов по параметрам.
-        """
+        """Метод получения списка объектов по параметрам."""
         pass
 
 
@@ -40,12 +37,10 @@ class AbstractService(ABC):
 
     @abstractmethod
     async def get_by_id(self, id_: str):
-        """Метод получения объекта по id.
-        """
+        """Метод получения объекта по id."""
         pass
 
     @abstractmethod
     async def filter(self, **kwargs):
-        """Метод получения списка объектов по параметрам.
-        """
+        """Метод получения списка объектов по параметрам."""
         pass

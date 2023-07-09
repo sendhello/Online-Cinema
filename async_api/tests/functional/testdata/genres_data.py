@@ -1,5 +1,6 @@
 from ..utils.models.genre import GenreData, GenresListData
 
+
 GENRE_DATA = [
     GenreData(
         genre_id='11111111-1111-1111-1111-111111111111',
@@ -17,7 +18,9 @@ GENRE_DATA = [
             'uuid': '11111111-1111-1111-1111-111111111111',
             'name': 'Fantastic',
         },
-    ).dict().values(),
+    )
+    .dict()
+    .values(),
 ]
 
 GENRES_LIST_DATA = [
@@ -42,6 +45,7 @@ GENRES_LIST_DATA = [
                 'name': 'Fantasy',
             },
         ],
-
-    ).dict().values(),
+    )
+    .dict()
+    .values(),
 ]

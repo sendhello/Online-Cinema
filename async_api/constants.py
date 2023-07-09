@@ -7,8 +7,8 @@ class FilmSort(str, Enum):
 
 
 class Index(str, Enum):
-    """Индексы в Elastic DB.
-    """
+    """Индексы в Elastic DB."""
+
     MOVIES = 'movies'
     GENRES = 'genres'
     PERSONS = 'persons'
