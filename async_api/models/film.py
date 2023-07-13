@@ -11,7 +11,7 @@ class Film(Model, UUIDMixin):
     title: str
     imdb_rating: float
     description: str | None
-    genre: list[str] = []
+    genre: str | None
     actors: list[Person] = []
     writers: list[Person] = []
     directors: list[Person] = []

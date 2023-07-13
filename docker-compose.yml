@@ -15,8 +15,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - pgdata:/var/lib/postgresql/data/
-      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
+      - admin_pgdata:/var/lib/postgresql/data/
+#      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U app -d movies_database" ]
       interval: 5s
@@ -36,7 +36,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${AUTH_POSTGRES_DB}
     volumes:
-      - auth_data:/var/lib/postgresql/data/
+      - auth_pgdata:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
       interval: 5s
@@ -70,20 +70,92 @@ services:
     networks:
       - network
 
+  admin_panel:
+    container_name: admin_panel
+    hostname: admin_panel
+    build: admin_panel
+    expose:
+      - "8000"
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL}
+    volumes:
+      - static_volume:/opt/app/static
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/admin" ]
+      interval: 60s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+  admin_panel_swagger:
+    container_name: admin_panel_swagger
+    hostname: admin_panel_swagger
+    image: swaggerapi/swagger-ui
+    environment:
+      SWAGGER_JSON: ${SWAGGER_JSON}
+      SWAGGER_HOST: ${SWAGGER_HOST}
+      SWAGGER_PORT: ${SWAGGER_PORT}
+    volumes:
+      - ./admin_panel/openapi.yaml:/openapi.yaml
+    expose:
+      - "8080"
+    networks:
+      - network
+    depends_on:
+      - admin_panel
+
+  sqlite_to_postgres:
+    container_name: sqlite_to_postgres
+    hostname: sqlite_to_postgres
+    build: sqlite_to_postgres
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SQLITE_DB: ${SQLITE_DB}
+      STP_LOAD_PACKAGE_SIZE: ${STP_LOAD_PACKAGE_SIZE}
+    volumes:
+      - ./sqlite_to_postgres/db.sqlite:/opt/app/db.sqlite
+    depends_on:
+      admin_panel:
+        condition: service_healthy
+    networks:
+      - network
+
   etl:
     container_name: etl
     hostname: etl
     build: etl
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_NAME: ${DB_NAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DEBUG: ${DEBUG}
+      ETL_PG_DSN: ${ETL_PG_DSN}
       ES_HOST: ${ES_HOST}
       ES_PORT: ${ES_PORT}
+      ES_SSL: ${ES_SSL}
+      USE_REDIS: ${USE_REDIS}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      LOAD_PACKAGE_SIZE: ${LOAD_PACKAGE_SIZE}
+      JSON_STORAGE_FILE: ${JSON_STORAGE_FILE}
+      ETL_LOAD_PACKAGE_SIZE: ${ETL_LOAD_PACKAGE_SIZE}
+      SLEEP_TIME: ${SLEEP_TIME}
     networks:
       - network
     depends_on:
@@ -101,6 +173,7 @@ services:
       ES_PORT: ${ES_PORT}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      SECRET_KEY: ${SECRET_KEY}
       LOG_LEVEL_LOGGERS: ${LOG_LEVEL_LOGGERS}
       LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT}
     networks:
@@ -132,22 +205,26 @@ services:
   nginx:
     container_name: nginx
     hostname: nginx
-    image: nginx:1.19.2
+    image: nginx
     volumes:
       - ./src/nginx.conf:/etc/nginx/nginx.conf
       - ./src/configs:/etc/nginx/conf.d
+      - static_volume:/opt/app/static
     depends_on:
       - api
+      - admin_panel
+      - auth
     ports:
       - "80:80"
     networks:
       - network
 
 volumes:
-  pgdata:
-  auth_data:
+  admin_pgdata:
+  auth_pgdata:
   redis_data:
   elasticsearch_data:
+  static_volume:
 
 networks:
   network:

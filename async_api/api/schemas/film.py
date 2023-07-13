@@ -17,5 +17,5 @@ class FullFilm(BaseModel):
     title: str
     imdb_rating: float
     description: str | None
-    genres: list[str] = []
+    genres: str | None
     cast: list[str] = []
