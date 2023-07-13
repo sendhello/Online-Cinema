@@ -1,6 +1,9 @@
 # Online-кинотеатр
 
 ### Список сервисов online-кинотеатра:
+* [Admin Panel](admin_panel/README.md)
+* [SQLite to Postgres](sqlite_to_postgres/README.md)
+* [ETL](etl/README.md)
 * [Async API](async_api/README.md)
 * [Auth](auth_service/README.md)
 
