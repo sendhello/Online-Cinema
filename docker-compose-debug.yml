@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: postgres:15.2
+    networks:
+      - network
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d movies_database" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth_postgres:
+    container_name: auth_postgres
+    hostname: auth_postgres
+    image: postgres:15.2
+    networks:
+      - network
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+    volumes:
+      - auth_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - network
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+    environment:
+      discovery.type: ${DISCOVERY_TYPE}
+      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - network
+
+volumes:
+  pgdata:
+  auth_data:
+  redis_data:
+  elasticsearch_data:
+
+networks:
+  network:

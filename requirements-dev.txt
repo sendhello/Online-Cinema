@@ -2,6 +2,8 @@
 -r async_api/requirements.txt
 -r async_api/tests/functional/requirements.txt
 -r auth_service/requirements.txt
+-r admin_panel/requirements.txt
+-r sqlite_to_postgres/requirements.txt
 
 flake8==6.0.0
 isort==5.12.0
@@ -10,3 +12,4 @@ pytest==7.3.1
 pytest-asyncio==0.21.0
 pytest-lazy-fixture==0.6.3
 pytest-mock==3.11.1
+django-debug-toolbar==3.4.0
