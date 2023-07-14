@@ -5,6 +5,7 @@ import orjson
 from async_fastapi_jwt_auth import AuthJWT
 from fastapi.encoders import jsonable_encoder
 from models import Rules
+from pydantic import EmailStr
 from schemas import RoleInDB, UserInDB
 from tests.functional.redis import redis
 from tests.functional.settings import test_settings  # noqa
@@ -44,7 +45,7 @@ async def get_headers(user):
 async def get_admin_headers():
     admin = UserInDB(
         id=UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced'),
-        email='admin@admin.ru',
+        email=EmailStr('admin@example.com'),
         first_name='',
         last_name='',
         role=RoleInDB(

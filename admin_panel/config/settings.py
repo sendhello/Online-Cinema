@@ -16,6 +16,7 @@ from split_settings.tools import include
 
 load_dotenv()
 include(
+    'components/auth.py',
     'components/base.py',
     'components/apps.py',
     'components/database.py',

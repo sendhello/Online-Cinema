@@ -1,5 +1,4 @@
 from hashlib import md5
-from http import HTTPStatus
 
 from async_fastapi_jwt_auth import AuthJWT
 from core.settings import settings
@@ -43,12 +42,14 @@ async def login(
     db_user = await User.get_by_email(email=user_login.email)
     if db_user is None:
         raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED, detail='Incorrect username or password'
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect username or password',
         )
 
     if not db_user.check_password(user_login.password):
         raise HTTPException(
-            status_code=HTTPStatus.UNAUTHORIZED, detail='Incorrect username or password'
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect username or password',
         )
 
     user = UserInDB.from_orm(db_user)

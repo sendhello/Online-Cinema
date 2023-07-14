@@ -9,5 +9,6 @@ from .user import (
     UserCreated,
     UserInDB,
     UserLogin,
+    UserResponse,
     UserUpdate,
 )

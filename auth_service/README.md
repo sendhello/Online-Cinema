@@ -57,4 +57,4 @@ black --skip-string-normalization auth_service
 | SECRET_KEY     | secret                                              | Секретный ключ                            |
 
 ### Создание суперпользователя
-Суперпользователь создается автоматически с логином и паролем admin = admin
+Суперпользователь создается автоматически с логином admin@example.com и паролем admin

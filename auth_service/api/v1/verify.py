@@ -6,10 +6,10 @@ from db.redis_db import get_redis
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
-from models import Rules
+from models import History, Rules, User
 from pydantic import EmailStr
 from redis.asyncio import Redis
-from schemas import RoleInDB, Rule, UserInDB
+from schemas import RoleInDB, Rule, UserInDB, UserLogin, UserResponse
 from security import PART_PROTECTED
 from services.rules import rules
 from starlette import status
@@ -18,14 +18,14 @@ from starlette import status
 router = APIRouter()
 
 
-@router.post('/verify', response_model=UserInDB, dependencies=PART_PROTECTED)
+@router.post('/token', response_model=UserResponse, dependencies=PART_PROTECTED)
 async def verify(
     checked_entity: Rule | None,
     user_agent: str = Header(default=None),
     authorize: AuthJWT = Depends(),
     redis: Redis = Depends(get_redis),
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
-) -> dict:
+) -> UserResponse:
     anonymous = UserInDB(
         id=uuid4(),
         login=ANONYMOUS,
@@ -37,7 +37,7 @@ async def verify(
     current_user = UserInDB.parse_obj(user_claim) if user_claim else anonymous
 
     if checked_entity is None:
-        return current_user
+        return UserResponse.parse_obj(current_user)
 
     if current_user.role is None:
         current_user.role = RoleInDB(
@@ -47,8 +47,36 @@ async def verify(
     for text_rule in current_user.role.rules:
         rule_model = rules.get(text_rule)
         if checked_entity in rule_model.rules:
-            return current_user
+            return UserResponse.parse_obj(current_user)
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
     )
+
+
+@router.post('/login', response_model=UserResponse)
+async def login(
+    user_login: UserLogin,
+    user_agent: str = Header(default=None),
+) -> UserResponse:
+    db_user = await User.get_by_email(email=user_login.email)
+    if db_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect username or password',
+        )
+
+    if not db_user.check_password(user_login.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect username or password',
+        )
+
+    db_history = History(
+        user_id=db_user.id,
+        user_agent=user_agent,
+    )
+    await db_history.save()
+
+    current_user = UserInDB.from_orm(db_user)
+    return UserResponse.parse_obj(current_user)
