@@ -1,5 +1,4 @@
-from models import Rules
-from pydantic import EmailStr, Field, validator
+from pydantic import EmailStr, Field, root_validator
 
 from .base import Model
 from .mixins import IdMixin
@@ -30,38 +29,23 @@ class UserCreated(BaseUser, PersonalUser, IdMixin):
 
 
 class UserResponse(UserCreated):
-    """Модель пользователя при авторизации."""
+    """Модель пользователя при авторизации.
+
+    Умеет распаршивать модель UserInDB
+    """
 
     login: str | None
     role: str | None
     rules: list[str] = Field(default_factory=list)
 
-    @validator('role', pre=True)
-    def convert_role(cls, v: RoleInDB | str | None):
-        if v is None:
-            return None
+    @root_validator(pre=True)
+    def set_rules(cls, values: dict) -> dict:
+        role = values.get('role', {})
+        if isinstance(role, RoleInDB):
+            values['rules'] = role.rules
+            values['role'] = role.title
 
-        if isinstance(v, RoleInDB):
-            return v.title
-
-        return v
-
-    @validator('rules', pre=True)
-    def convert_rules(cls, v: list[Rules]):
-        if v is None:
-            return None
-
-        if isinstance(v, list):
-            new_v = []
-            for el in v:
-                if isinstance(el, Rules):
-                    new_v.append(el.value)
-                else:
-                    new_v.append(el)
-
-            return new_v
-
-        return v
+        return values
 
 
 class UserInDB(UserCreated):

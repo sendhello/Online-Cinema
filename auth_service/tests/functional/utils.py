@@ -6,7 +6,7 @@ from async_fastapi_jwt_auth import AuthJWT
 from fastapi.encoders import jsonable_encoder
 from models import Rules
 from pydantic import EmailStr
-from schemas import RoleInDB, UserInDB
+from schemas import UserResponse
 from tests.functional.redis import redis
 from tests.functional.settings import test_settings  # noqa
 
@@ -14,7 +14,9 @@ from tests.functional.settings import test_settings  # noqa
 async def generate_tokens(
     user: dict, authorize: AuthJWT = AuthJWT(), user_agent: str = 'testclient'
 ) -> dict:
-    user = UserInDB.parse_obj({**user, 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced'})
+    user = UserResponse.parse_obj(
+        {**user, 'id': '345fa6c5-c138-4f5c-bce5-a35b0f26fced'}
+    )
     user_claims = orjson.loads(user.json())
     user_agent_hash = md5(user_agent.encode()).hexdigest()
 
@@ -48,16 +50,13 @@ async def get_headers(user: dict = None):
 
 
 async def get_admin_headers():
-    admin = UserInDB(
+    admin = UserResponse(
         id=UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced'),
         email=EmailStr('admin@example.com'),
         first_name='',
         last_name='',
-        role=RoleInDB(
-            id=UUID('345fa6c5-c138-4f5c-bce5-a35b0f26fced'),
-            title='super_admin',
-            rules=[Rules.admin_rules],
-        ),
+        role='super_admin',
+        rules=[Rules.admin_rules],
     )
     tokens = await generate_tokens(jsonable_encoder(admin))
     access_token = tokens['access_token']

@@ -9,7 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from models import History, User
 from redis.asyncio import Redis
-from schemas import Tokens, UserCreate, UserCreated, UserInDB, UserLogin
+from schemas import Tokens, UserCreate, UserCreated, UserInDB, UserLogin, UserResponse
 from security import PROTECTED, REFRESH_PROTECTED
 from sqlalchemy.exc import IntegrityError
 from starlette import status
@@ -19,10 +19,10 @@ router = APIRouter()
 
 
 @router.post('/signup', response_model=UserCreated, status_code=status.HTTP_201_CREATED)
-async def create_user(user_create: UserCreate) -> UserInDB:
+async def create_user(user_create: UserCreate) -> UserCreated:
     user_dto = jsonable_encoder(user_create)
     try:
-        user = await User.create(**user_dto)
+        raw_user = await User.create(**user_dto)
 
     except IntegrityError:
         raise HTTPException(
@@ -30,7 +30,7 @@ async def create_user(user_create: UserCreate) -> UserInDB:
             detail='User with such login is registered already',
         )
 
-    return user
+    return raw_user
 
 
 @router.post('/login', response_model=Tokens)
@@ -52,8 +52,13 @@ async def login(
             detail='Incorrect username or password',
         )
 
-    user = UserInDB.from_orm(db_user)
-    tokens = await Tokens.create(authorize, user, user_agent)
+    user_in_db = UserInDB.from_orm(db_user)
+    user = UserResponse.parse_obj(user_in_db)
+    tokens = await Tokens.create(
+        authorize=authorize,
+        user=user,
+        user_agent=user_agent,
+    )
 
     db_history = History(
         user_id=db_user.id,
@@ -78,7 +83,7 @@ async def logout(
     await redis.expire(access_key, time=access_token_expires)
 
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim)
+    current_user = UserResponse.parse_obj(user_claim)
     user_agent_hash = md5(user_agent.encode()).hexdigest()
     refresh_key = f'refresh.{current_user.id}.{user_agent_hash}'
     await redis.delete(refresh_key)
@@ -95,7 +100,7 @@ async def refresh(
     await redis.delete(old_refresh_key)
 
     user_claims = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claims)
+    current_user = UserResponse.parse_obj(user_claims)
     tokens = await Tokens.create(
         authorize=authorize, user=current_user, user_agent=user_agent
     )

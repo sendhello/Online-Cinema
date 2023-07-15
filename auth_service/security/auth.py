@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from models.role import Rules
 from redis.asyncio import Redis
-from schemas import UserInDB
+from schemas import UserResponse
 from starlette import status
 
 
@@ -107,13 +107,13 @@ async def admin_protected(
         )
 
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim)
+    current_user = UserResponse.parse_obj(user_claim)
     if current_user.role is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
         )
 
-    if Rules.admin_rules not in current_user.role.rules:
+    if Rules.admin_rules not in current_user.rules:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
         )

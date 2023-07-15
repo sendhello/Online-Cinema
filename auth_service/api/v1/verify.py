@@ -9,7 +9,7 @@ from fastapi.security.http import HTTPBearer
 from models import History, Rules, User
 from pydantic import EmailStr
 from redis.asyncio import Redis
-from schemas import RoleInDB, Rule, UserInDB, UserLogin, UserResponse
+from schemas import Rule, UserInDB, UserLogin, UserResponse
 from security import PART_PROTECTED
 from services.rules import rules
 from starlette import status
@@ -26,26 +26,23 @@ async def verify(
     redis: Redis = Depends(get_redis),
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ) -> UserResponse:
-    anonymous = UserInDB(
+    anonymous = UserResponse(
         id=uuid4(),
         login=ANONYMOUS,
         email=EmailStr(f"{ANONYMOUS}@{ANONYMOUS}.email"),
         first_name=ANONYMOUS,
         last_name=ANONYMOUS,
+        role=ANONYMOUS,
+        rules=[Rules.anonymous_rules],
     )
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim) if user_claim else anonymous
+    current_user = UserResponse.parse_obj(user_claim) if user_claim else anonymous
 
     if checked_entity is None:
         return UserResponse.parse_obj(current_user)
 
-    if current_user.role is None:
-        current_user.role = RoleInDB(
-            id=uuid4(), title=ANONYMOUS, rules=[Rules.anonymous_rules]
-        )
-
-    for text_rule in current_user.role.rules:
-        rule_model = rules.get(text_rule)
+    for rule in current_user.rules:
+        rule_model = rules.get(rule)
         if checked_entity in rule_model.rules:
             return UserResponse.parse_obj(current_user)
 
