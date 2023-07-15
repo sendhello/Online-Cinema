@@ -77,13 +77,13 @@ services:
     expose:
       - "8000"
     environment:
+      DEBUG: ${DEBUG}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       SECRET_KEY: ${SECRET_KEY}
-      DEBUG: ${DEBUG}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
@@ -169,12 +169,16 @@ services:
     hostname: api
     build: async_api
     environment:
+      DEBUG: ${DEBUG}
       PROJECT_NAME: ${PROJECT_NAME}
       ES_HOST: ${ES_HOST}
       ES_PORT: ${ES_PORT}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       SECRET_KEY: ${SECRET_KEY}
+      JAEGER_TRACE: ${JAEGER_TRACE}
+      JAEGER_AGENT_HOST: ${JAEGER_AGENT_HOST}
+      JAEGER_AGENT_PORT: ${JAEGER_AGENT_PORT}
       LOG_LEVEL_LOGGERS: ${LOG_LEVEL_LOGGERS}
       LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT}
     networks:
