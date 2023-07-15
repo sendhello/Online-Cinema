@@ -27,7 +27,7 @@ loop = asyncio.get_event_loop()
 )
 @pytest.mark.asyncio
 async def test_create_user(client, mock_redis, user, status_code, result):
-    response = client.post('api/v1/auth/signup', json=user)
+    response = client.post('api/v1/auth/signup', json=user, headers=await get_headers())
     assert response.status_code == status_code
     data = response.json()
     assert data == result
@@ -48,7 +48,9 @@ async def test_create_user(client, mock_redis, user, status_code, result):
 )
 @pytest.mark.asyncio
 async def test_login(client, mock_redis, login_data, status_code, result_keys):
-    response = client.post("api/v1/auth/login", json=login_data)
+    response = client.post(
+        "api/v1/auth/login", json=login_data, headers=await get_headers()
+    )
     assert response.status_code == status_code
     data = response.json()
     assert list(data.keys()) == result_keys
@@ -67,7 +69,7 @@ async def test_login(client, mock_redis, login_data, status_code, result_keys):
 async def test_refresh(client, mock_redis, user, status_code, result_keys):
     tokens = await generate_tokens(user)
     refresh_token = tokens['refresh_token']
-    headers = {"Authorization": f"Bearer {refresh_token}"}
+    headers = {"X-Request-Id": "abcdefgh", "Authorization": f"Bearer {refresh_token}"}
     response = client.post("api/v1/auth/refresh", headers=headers)
     assert response.status_code == status_code
     data = response.json()

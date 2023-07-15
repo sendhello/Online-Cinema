@@ -11,10 +11,8 @@ logging_config.dictConfig(LOGGING)
 
 
 class Settings(BaseSettings):
-    # Название проекта. Используется в Swagger-документации
-    project_name: str = Field('Auth', env='PROJECT_NAME')
-
     # Общие настройки
+    project_name: str = Field('Auth', env='PROJECT_NAME')
     debug: bool = Field(False, env='DEBUG')
 
     # Настройки Redis
@@ -30,6 +28,11 @@ class Settings(BaseSettings):
     authjwt_secret_key: str = Field('secret', env='SECRET_KEY')
     authjwt_access_token_expires: timedelta = timedelta(minutes=15)
     authjwt_refresh_token_expires: timedelta = timedelta(days=30)
+
+    # Настройка телеметрии
+    jaeger_trace: bool = Field(True, env='JAEGER_TRACE')
+    jaeger_agent_host: str = Field('localhost', env='JAEGER_AGENT_HOST')
+    jaeger_agent_port: int = Field(6831, env='JAEGER_AGENT_PORT')
 
 
 @AuthJWT.load_config

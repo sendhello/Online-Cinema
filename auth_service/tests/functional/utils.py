@@ -36,10 +36,15 @@ async def generate_tokens(
     }
 
 
-async def get_headers(user):
+async def get_headers(user: dict = None):
+    header = {"X-Request-Id": "abcdefgh"}
+    if user is None:
+        return header
+
     tokens = await generate_tokens(user)
     access_token = tokens['access_token']
-    return {"Authorization": f"Bearer {access_token}"}
+    header.update({"Authorization": f"Bearer {access_token}"})
+    return header
 
 
 async def get_admin_headers():
@@ -56,7 +61,7 @@ async def get_admin_headers():
     )
     tokens = await generate_tokens(jsonable_encoder(admin))
     access_token = tokens['access_token']
-    return {"Authorization": f"Bearer {access_token}"}
+    return {"X-Request-Id": "abcdefgh", "Authorization": f"Bearer {access_token}"}
 
 
 async def redis_flush(mock_redis):
