@@ -23,7 +23,7 @@ router = APIRouter()
 async def persons(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     person_service: Annotated[PersonService, Depends(get_person_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> list[Person]:
     """Список фильмов."""
     persons = await person_service.filter(
@@ -44,7 +44,7 @@ async def person_search(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     person_service: Annotated[PersonService, Depends(get_person_service)],
     film_service: Annotated[FilmService, Depends(get_film_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
     query: Annotated[str | None, Query(max_length=255)] = None,
 ) -> list[PersonDescription]:
     """Поиск по персонам."""
@@ -86,7 +86,7 @@ async def person_details(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     person_service: Annotated[PersonService, Depends(get_person_service)],
     film_service: Annotated[FilmService, Depends(get_film_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> PersonDescription:
     """Страница персоны."""
     person = await person_service.get_by_id(person_id)
@@ -118,7 +118,7 @@ async def person_films(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     person_service: Annotated[PersonService, Depends(get_person_service)],
     film_service: Annotated[FilmService, Depends(get_film_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
     sort: FilmSort | None = None,
 ) -> list[Film]:
     """Фильмы с персоной."""

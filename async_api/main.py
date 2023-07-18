@@ -6,24 +6,31 @@ from core.tracer import configure_tracer
 from db import elastic, redis
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
+from fastapi.logger import logger
 from fastapi.responses import ORJSONResponse
 from middleware import required_request_id
 from opentelemetry.instrumentation.elasticsearch import ElasticsearchInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 from redis.asyncio import Redis
+from services.aiohttp import AiohttpClient
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.debug('Start up...')
     redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
     elastic.es = AsyncElasticsearch(
         hosts=[f'http://{settings.elastic_host}:{settings.elastic_port}']
     )
+    AiohttpClient.get_session()
+
     yield
 
+    logger.debug('Shut down...')
     await redis.redis.close()
     await elastic.es.close()
+    await AiohttpClient.close_session()
 
 
 app = FastAPI(

@@ -2,7 +2,7 @@ import os
 from logging import config as logging_config
 
 from core.logger import LOGGING
-from pydantic import BaseSettings, Field
+from pydantic import AnyHttpUrl, BaseSettings, Field
 
 
 # Применяем настройки логирования
@@ -25,9 +25,10 @@ class Settings(BaseSettings):
     # Корень проекта
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    # Настройки авторизации
+    # Настройки безопасности
     jwt_secret_key: str = Field('secret', env='SECRET_KEY')
     jwt_algorithm: str = Field('HS256', env='JWT_ALGORITHM')
+    validate_url: AnyHttpUrl = Field('http://localhost', env='VALIDATE_URL')
 
     # Настройка телеметрии
     jaeger_trace: bool = Field(True, env='JAEGER_TRACE')

@@ -23,7 +23,7 @@ router = APIRouter()
 async def films(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     film_service: Annotated[FilmService, Depends(get_film_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
     sort: FilmSort | None = None,
     genre: str | None = None,
 ) -> list[Film]:
@@ -49,7 +49,7 @@ async def films(
 async def film_search(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     film_service: Annotated[FilmService, Depends(get_film_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
     query: Annotated[str | None, Query(max_length=255)] = None,
 ) -> list[Film]:
     """Поиск по фильмам."""
@@ -73,7 +73,7 @@ async def film_search(
 async def film_details(
     film_id: UUID,
     film_service: Annotated[FilmService, Depends(get_film_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> FullFilm:
     """Страница фильма."""
     film = await film_service.get_by_id(film_id)

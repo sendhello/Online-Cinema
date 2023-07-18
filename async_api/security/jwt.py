@@ -1,10 +1,11 @@
-import http
 import time
 
 from core.settings import settings
 from fastapi import HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
+from services.aiohttp import AiohttpClient
+from starlette import status
 
 
 def decode_token(token: str) -> dict | None:
@@ -26,24 +27,39 @@ class JWTBearer(HTTPBearer):
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
         if not credentials:
             raise HTTPException(
-                status_code=http.HTTPStatus.FORBIDDEN,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail='Invalid authorization code.',
             )
 
         if not credentials.scheme == 'Bearer':
             raise HTTPException(
-                status_code=http.HTTPStatus.UNAUTHORIZED,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail='Only Bearer token might be accepted',
             )
 
-        decoded_token = self.parse_token(credentials.credentials)
-        if not decoded_token:
-            raise HTTPException(
-                status_code=http.HTTPStatus.FORBIDDEN,
-                detail='Invalid or expired token.',
-            )
+        authorization = request.headers.get('Authorization')
+        status_code, json_response = await AiohttpClient.query_url(
+            url=str(settings.validate_url),
+            headers={'Authorization': authorization},
+        )
 
-        return decoded_token
+        # В случае недоступности сервиса авторизации - проверяем токен локально
+        if status_code == 500:
+            decoded_token = self.parse_token(credentials.credentials)
+            if not decoded_token:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail='Invalid or expired token',
+                )
+            return decoded_token
+
+        if status_code == 200:
+            return json_response
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=json_response.get('detail', json_response),
+        )
 
     @staticmethod
     def parse_token(jwt_token: str) -> dict | None:

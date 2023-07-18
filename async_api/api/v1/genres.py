@@ -21,7 +21,7 @@ router = APIRouter()
 async def genres(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     genre_service: Annotated[GenreService, Depends(get_genre_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> list[Genre]:
     """Список жанров."""
     genres = await genre_service.filter(
@@ -42,7 +42,7 @@ async def genres(
 async def genre_details(
     genre_id: UUID,
     genre_service: Annotated[GenreService, Depends(get_genre_service)],
-    user: Annotated[dict, Depends(security_jwt)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> Genre:
     """Страница жанра."""
     genre = await genre_service.get_by_id(genre_id)
