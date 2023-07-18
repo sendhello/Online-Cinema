@@ -39,9 +39,9 @@ class FilmWorkAdmin(admin.ModelAdmin):
     inlines = (GenreFilmWorkInline, PersonFilmWorkInline)
 
     # Отображение полей в списке
-    list_display = ('title', 'type', 'creation_year', 'rating', 'created', 'modified')
+    list_display = ('title', 'type', 'creation_year', 'rating', 'new', 'modified')
 
-    fields = ('title', 'creation_date', 'description', 'rating', 'type')
+    fields = ('title', 'creation_date', 'description', 'rating', 'type', 'new')
 
     def creation_year(self, obj):
         if obj.creation_date is None:
@@ -54,10 +54,7 @@ class FilmWorkAdmin(admin.ModelAdmin):
     creation_year.short_description = _('short_creation_year')
 
     # Фильтрация в списке
-    list_filter = (
-        'type',
-        'creation_date',
-    )
+    list_filter = ('type', 'creation_date', 'new')
 
     # Поиск по полям
     search_fields = ('title', 'description', 'id')

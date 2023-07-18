@@ -22,6 +22,7 @@ class FilmWork(UUIDMixin, TimeStampedMixin):
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     type = models.TextField(_('type'), choices=TypeChoices.choices)
+    new = models.BooleanField(_('new'), default=False, blank=True, null=True)
     genres = models.ManyToManyField(Genre, through='GenreFilmWork')
     people = models.ManyToManyField(Person, through='PersonFilmWork')
     certificate = models.CharField(
