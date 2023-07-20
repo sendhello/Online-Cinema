@@ -33,6 +33,7 @@ class SourceMovie(BaseModel):
     description: str | None
     rating: float | None
     type: MoviesType
+    new: bool | None
     created: datetime
     modified: datetime
     role: RoleType | None

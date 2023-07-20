@@ -7,6 +7,7 @@ BASE_FILM_WORK_SQL = """
         fw.description as description, 
         fw.rating as rating, 
         fw.type as type, 
+        fw.new as new, 
         fw.created as created, 
         fw.modified as modified, 
         pfw.role as role, 

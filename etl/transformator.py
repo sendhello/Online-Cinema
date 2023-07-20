@@ -35,6 +35,9 @@ class Transformator:
                     description=source_movie.description,
                 )
 
+            if source_movie.new is not None:
+                movies[movie_id].new = source_movie.new
+
             if source_movie.role == RoleType.DIRECTOR:
                 movies[movie_id].director = source_movie.full_name
 

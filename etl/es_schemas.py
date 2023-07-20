@@ -39,6 +39,7 @@ MOVIES_INDEX = {
                 "fields": {"raw": {"type": "keyword"}},
             },
             "description": {"type": "text", "analyzer": "ru_en"},
+            "new": {"type": "boolean"},
             "director": {"type": "text", "analyzer": "ru_en"},
             "actors_names": {"type": "text", "analyzer": "ru_en"},
             "writers_names": {"type": "text", "analyzer": "ru_en"},

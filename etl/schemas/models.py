@@ -23,6 +23,7 @@ class Movie(BaseModel):
     genre: str | None
     title: str
     description: str | None
+    new: bool = Field(default_factory=bool)
     director: str = Field(default_factory=str)
     actors_names: list[str] = Field(default_factory=list)
     writers_names: list[str] = Field(default_factory=list)
