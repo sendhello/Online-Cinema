@@ -57,7 +57,7 @@ class JWTBearer(HTTPBearer):
             return json_response
 
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status_code,
             detail=json_response.get('detail', json_response),
         )
 
