@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     jaeger_agent_host: str = Field('localhost', env='JAEGER_AGENT_HOST')
     jaeger_agent_port: int = Field(6831, env='JAEGER_AGENT_PORT')
 
+    # Настройки лимитирования запросов
+    request_limit: int = Field(20, env='REQUEST_LIMIT_PER_MINUTE')
+
 
 @AuthJWT.load_config
 def get_config():
