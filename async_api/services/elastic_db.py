@@ -5,6 +5,7 @@ from uuid import UUID
 import jmespath
 from constants import Index, LogicType, QueryType
 from elasticsearch import (
+    ApiError,
     AsyncElasticsearch,
     BadRequestError,
     ConnectionError,
@@ -128,6 +129,11 @@ class ElasticRequest(AbstractDBRequest):
             return None
 
         except ConnectionError as e:
+            raise HTTPException(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message
+            )
+
+        except ApiError as e:
             raise HTTPException(
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message
             )

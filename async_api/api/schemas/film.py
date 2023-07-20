@@ -8,7 +8,8 @@ class Film(BaseModel):
 
     uuid: UUID
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
+    new: bool | None
 
 
 class FullFilm(BaseModel):
@@ -16,7 +17,8 @@ class FullFilm(BaseModel):
 
     uuid: UUID
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
     description: str | None
+    new: bool | None
     genres: str | None
     cast: list[str] = []

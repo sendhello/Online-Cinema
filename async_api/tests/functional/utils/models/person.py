@@ -19,7 +19,7 @@ class PersonFilm(UUIDMixin):
 class FilmShort(BaseModel):
     uuid: str
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
 
 
 class PersonDescription(UUIDMixin):

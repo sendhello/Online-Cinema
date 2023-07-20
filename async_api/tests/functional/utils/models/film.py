@@ -85,14 +85,14 @@ class ResponseShortFilm(ResponseModel):
     """Модель фильма из списка фильмов."""
 
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
 
 
 class ResponseFilm(ResponseModel):
     """Модель фильма со страницы фильма"""
 
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
     description: str | None
     genres: list[str] = []
     cast: list[str] = []
