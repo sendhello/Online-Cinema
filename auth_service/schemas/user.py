@@ -22,6 +22,10 @@ class UserCreate(UserLogin, PersonalUser):
     pass
 
 
+class GoogleUserCreate(BaseUser, PersonalUser):
+    google_id: str
+
+
 class UserCreated(BaseUser, PersonalUser, IdMixin):
     """Модель пользователя при выводе после регистрации."""
 

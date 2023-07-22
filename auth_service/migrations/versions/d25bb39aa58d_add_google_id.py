@@ -1,17 +1,18 @@
-""""init"
+""""add_google_id"
 
-Revision ID: b747a9c3fe95
+Revision ID: d25bb39aa58d
 Revises:
-Create Date: 2023-07-09 01:22:11.630965
+Create Date: 2023-07-23 00:43:41.035520
 
 """
 import sqlalchemy as sa
 from alembic import op
+from db import postgres  # noqa
 from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
-revision = 'b747a9c3fe95'
+revision = 'd25bb39aa58d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -34,9 +35,10 @@ def upgrade() -> None:
         'users',
         sa.Column('login', sa.String(length=255), nullable=True),
         sa.Column('email', sa.String(length=255), nullable=False),
-        sa.Column('password', sa.String(length=255), nullable=False),
+        sa.Column('password', sa.String(length=255), nullable=True),
         sa.Column('first_name', sa.String(length=50), nullable=True),
         sa.Column('last_name', sa.String(length=50), nullable=True),
+        sa.Column('google_id', sa.String(length=255), nullable=True),
         sa.Column('role_id', sa.UUID(), nullable=True),
         sa.Column('id', sa.UUID(), nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -47,6 +49,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('email'),
+        sa.UniqueConstraint('google_id'),
         sa.UniqueConstraint('id'),
         sa.UniqueConstraint('login'),
     )
