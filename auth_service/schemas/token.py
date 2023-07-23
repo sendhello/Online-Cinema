@@ -7,7 +7,7 @@ from core.settings import settings
 from db.redis_db import get_redis
 
 from .base import Model
-from .user import UserInDB
+from .user import UserResponse
 
 
 class Tokens(Model):
@@ -15,7 +15,9 @@ class Tokens(Model):
     refresh_token: str
 
     @classmethod
-    async def create(cls, authorize: AuthJWT, user: UserInDB, user_agent: str) -> Self:
+    async def create(
+        cls, authorize: AuthJWT, user: UserResponse, user_agent: str
+    ) -> Self:
         user_claims = orjson.loads(user.json())
         user_agent_hash = md5(user_agent.encode()).hexdigest()
 

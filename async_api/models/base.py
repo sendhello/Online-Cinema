@@ -10,8 +10,8 @@ def orjson_dumps(v, *, default):
 
 
 class Model(BaseModel):
-    """Модель с более быстрым сериализатором orjson.
-    """
+    """Модель с более быстрым сериализатором orjson."""
+
     class Config:
         json_loads = orjson.loads
         json_dumps = orjson_dumps

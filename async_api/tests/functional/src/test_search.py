@@ -1,9 +1,9 @@
+from http import HTTPStatus
+from typing import Callable
+
 import pytest
 from pydantic import ValidationError
 from pydantic.main import ModelMetaclass
-
-from http import HTTPStatus
-from typing import Callable
 
 from ..testdata.fims_data import FILM_TITLES
 from ..utils.models.film import EsFilm, ResponseShortFilm
@@ -24,7 +24,6 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс поиска по 20 фильмов на странице
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -34,7 +33,6 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс поиска фильмов с 3-й страницы
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -44,12 +42,17 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {},
         ),
-
         # Кейс поиска с запросом
         (
             [
-                *[EsFilm.create_fake(title=film_title).dict() for film_title in FILM_TITLES],
-                *[EsFilm.create_fake(title=f'Film{i}', description='').dict() for i in range(50)],
+                *[
+                    EsFilm.create_fake(title=film_title).dict()
+                    for film_title in FILM_TITLES
+                ],
+                *[
+                    EsFilm.create_fake(title=f'Film{i}', description='').dict()
+                    for i in range(50)
+                ],
             ],
             {'query': 'Star', 'page_size': 10},
             HTTPStatus.OK,
@@ -57,23 +60,22 @@ pytest_mark = pytest.mark.asyncio
             ResponseShortFilm,
             {'title': 'star'},
         ),
-    ]
+    ],
 )
 @pytest_mark
 async def test_films_search(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        url_params: dict,  # параметры запроса
-        res_status: int,  # код ответа
-        res_count: str,  # количество элементов в ответе
-        res_model: ModelMetaclass,  # модель ответа
-        check_model_attrs_in: dict  # условия для проверки вхождения текста в атрибут модели,
-        # например {'title': 'часть названия'}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    url_params: dict,  # параметры запроса
+    res_status: int,  # код ответа
+    res_count: str,  # количество элементов в ответе
+    res_model: ModelMetaclass,  # модель ответа
+    check_model_attrs_in: dict  # условия для проверки вхождения текста в атрибут модели,
+    # например {'title': 'часть названия'}
 ):
-    """Тест: /api/v1/films
-    """
+    """Тест: /api/v1/films"""
     await es_write_data(es_data, 'movies')
 
     res = await service_get_data('films/search/', url_params)
@@ -98,7 +100,6 @@ async def test_films_search(
             ResponseShortFilm,
             {'uuid': 123456},
         ),
-
         # Кейс: ошибка валидации поля title
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -108,7 +109,6 @@ async def test_films_search(
             ResponseShortFilm,
             {'title': []},
         ),
-
         # Кейс: ошибка валидации поля imdb_rating
         (
             [EsFilm.create_fake().dict() for _ in range(200)],
@@ -118,22 +118,21 @@ async def test_films_search(
             ResponseShortFilm,
             {'imdb_rating': 'good'},
         ),
-    ]
+    ],
 )
 @pytest_mark
 async def test_films_search_no_valid(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],  # данные для отправки в ES
-        url_params: dict,  # параметры запроса
-        res_status: int,  # код ответа
-        res_count: str,  # количество элементов в ответе
-        res_model: ModelMetaclass,  # модель ответа
-        change_attrs: dict  # подмена атрибута ответа, например {'imdb_rating': []}
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],  # данные для отправки в ES
+    url_params: dict,  # параметры запроса
+    res_status: int,  # код ответа
+    res_count: str,  # количество элементов в ответе
+    res_model: ModelMetaclass,  # модель ответа
+    change_attrs: dict,  # подмена атрибута ответа, например {'imdb_rating': []}
 ):
-    """Тест: /api/v1/films
-    """
+    """Тест: /api/v1/films"""
     await es_write_data(es_data, 'movies')
 
     res = await service_get_data('films/search/', url_params)

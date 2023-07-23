@@ -77,17 +77,18 @@ services:
     expose:
       - "8000"
     environment:
+      DEBUG: ${DEBUG}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       SECRET_KEY: ${SECRET_KEY}
-      DEBUG: ${DEBUG}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL}
+      AUTH_API_LOGIN_URL: ${AUTH_API_LOGIN_URL}
     volumes:
       - static_volume:/opt/app/static
     depends_on:
@@ -168,12 +169,17 @@ services:
     hostname: api
     build: async_api
     environment:
+      DEBUG: ${DEBUG}
       PROJECT_NAME: ${PROJECT_NAME}
       ES_HOST: ${ES_HOST}
       ES_PORT: ${ES_PORT}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       SECRET_KEY: ${SECRET_KEY}
+      VALIDATE_URL: ${VALIDATE_URL}
+      JAEGER_TRACE: ${JAEGER_TRACE}
+      JAEGER_AGENT_HOST: ${JAEGER_AGENT_HOST}
+      JAEGER_AGENT_PORT: ${JAEGER_AGENT_PORT}
       LOG_LEVEL_LOGGERS: ${LOG_LEVEL_LOGGERS}
       LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT}
     networks:
@@ -188,12 +194,19 @@ services:
     hostname: auth
     build: auth_service
     environment:
-      PROJECT_NAME: ${AUTH_PROJECT_NAME}
       DEBUG: ${DEBUG}
+      PROJECT_NAME: ${AUTH_PROJECT_NAME}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       PG_DSN: ${PG_DSN}
       SECRET_KEY: ${SECRET_KEY}
+      JAEGER_TRACE: ${JAEGER_TRACE}
+      JAEGER_AGENT_HOST: ${JAEGER_AGENT_HOST}
+      JAEGER_AGENT_PORT: ${JAEGER_AGENT_PORT}
+      REQUEST_LIMIT_PER_MINUTE: ${REQUEST_LIMIT_PER_MINUTE}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     networks:
       - network
     expose:
@@ -202,10 +215,20 @@ services:
       - redis
       - postgres
 
+  jaeger:
+    container_name: jaeger
+    hostname: jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - network
+
   nginx:
     container_name: nginx
     hostname: nginx
-    image: nginx
+    image: nginx:1.25
     volumes:
       - ./src/nginx.conf:/etc/nginx/nginx.conf
       - ./src/configs:/etc/nginx/conf.d

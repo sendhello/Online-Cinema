@@ -17,3 +17,11 @@ alembic==1.11.1
 dnspython==2.3.0
 email-validator==2.0.0.post2
 httpx==0.24.1
+google-auth==2.22.0
+google-auth-oauthlib==1.0.0
+google-api-python-client==2.94.0
+opentelemetry-instrumentation-fastapi==0.40b0
+opentelemetry-instrumentation-sqlalchemy==0.40b0
+opentelemetry-instrumentation-redis==0.40b0
+opentelemetry-instrumentation-requests==0.40b0
+opentelemetry-exporter-jaeger==1.19.0

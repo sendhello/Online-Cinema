@@ -21,7 +21,7 @@ async def create_user(email: str, password: str) -> User:
         return user
 
     try:
-        role = await Role.create(title='super_admin')
+        role = await Role.create(title='admin')
 
     except IntegrityError:
         return user
@@ -72,7 +72,7 @@ def rollback(migrate_hash: str):
 
 
 @app.command()
-def createsuperuser(email: str = 'admin@admin.email', password: str = 'admin'):
+def createsuperuser(email: str = 'admin@example.com', password: str = 'admin'):
     """Creating super admin."""
     loop = asyncio.get_event_loop()
     super_admin = loop.run_until_complete(create_user(email, password))

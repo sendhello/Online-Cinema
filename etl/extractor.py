@@ -171,7 +171,8 @@ class PostgresExtractor:
                         if all(
                             [
                                 obj_type == obj,
-                                datetime.fromisoformat(last_modified) < data[-1].modified,
+                                datetime.fromisoformat(last_modified)
+                                < data[-1].modified,
                             ]
                         ):
                             state.set_state(state_name, data[-1].modified.isoformat())

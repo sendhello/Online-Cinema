@@ -19,5 +19,6 @@ class PersonDescription(UUIDMixin):
     """
     /api/v1/persons/<uuid:UUID>/
     """
+
     full_name: str
     films: list[PersonFilm]

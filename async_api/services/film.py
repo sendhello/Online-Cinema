@@ -3,38 +3,41 @@ from functools import lru_cache
 from uuid import UUID
 
 import orjson
-from elasticsearch import AsyncElasticsearch
-from fastapi import Depends
-from redis.asyncio import Redis
-
 from constants import FilmSort, Index, LogicType
 from db.elastic import get_elastic
 from db.redis import get_redis
+from elasticsearch import AsyncElasticsearch
+from fastapi import Depends
 from models.film import Film
+from redis.asyncio import Redis
 
 from .base import BaseService
 from .elastic_db import ElasticRequest, QueryFilter, QueryType
 from .redis_cache import RedisCache
+
 
 logger = logging.getLogger(__name__)
 
 
 class FilmService(BaseService):
     async def filter(
-            self,
-            page_size: int,
-            page_number: int,
-            sort: FilmSort | None = None,
-            genre: str | None = None,
-            person_id: UUID | None = None,
-            query: str | None = None,
+        self,
+        page_size: int,
+        page_number: int,
+        sort: FilmSort | None = None,
+        genre: str | None = None,
+        person_id: UUID | None = None,
+        query: str | None = None,
     ) -> list[Film]:
         model_name = self.request.model.__name__.lower()
         key = f'filter:{model_name}-{page_size}-{page_number}-{sort}-{genre}-{person_id}-{query}'
 
         data = await self.cache.get_from_cache(key)
         if data is not None:
-            return [self.request.model.parse_obj(raw_entity) for raw_entity in orjson.loads(data)]
+            return [
+                self.request.model.parse_obj(raw_entity)
+                for raw_entity in orjson.loads(data)
+            ]
 
         filters = []
 
@@ -62,7 +65,13 @@ class FilmService(BaseService):
                 QueryFilter(
                     type=QueryType.MULTI_MATCH,
                     query=query,
-                    fields=['title', 'description', 'actors_names', 'writers_names', 'director'],
+                    fields=[
+                        'title',
+                        'description',
+                        'actors_names',
+                        'writers_names',
+                        'director',
+                    ],
                 )
             )
 
@@ -81,8 +90,8 @@ class FilmService(BaseService):
 
 @lru_cache()
 def get_film_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+    redis: Redis = Depends(get_redis),
+    elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> FilmService:
     return FilmService(
         cache=RedisCache(redis),

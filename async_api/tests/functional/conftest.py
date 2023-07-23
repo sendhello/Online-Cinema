@@ -4,10 +4,12 @@ import json
 import aiohttp
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
+from redis.asyncio import Redis
+
 from .settings import test_settings
 from .testdata.es_mapping import index_to_schema
 from .utils.models.base_models import HTTPResponse
-from redis.asyncio import Redis
+
 
 INDEX_NAMES = index_to_schema.keys()
 
@@ -18,18 +20,12 @@ async def _create_index(es_client: AsyncElasticsearch):
         if await es_client.indices.exists(index=index_name):
             await es_client.indices.delete(index=index_name)
 
-        data_create_index = {
-            "index": index_name,
-            **index_to_schema.get(index_name)
-        }
-        await es_client.indices.create(
-            **data_create_index
-        )
+        data_create_index = {"index": index_name, **index_to_schema.get(index_name)}
+        await es_client.indices.create(**data_create_index)
 
 
 async def _delete_index(es_client: AsyncElasticsearch) -> None:
-    """Удаление индексов.
-    """
+    """Удаление индексов."""
     for index_name in INDEX_NAMES:
         if not await es_client.indices.exists(index=index_name):
             continue
@@ -40,15 +36,19 @@ async def _delete_index(es_client: AsyncElasticsearch) -> None:
 def _get_es_bulk_query(es_data: list[dict], index_name: str, es_id_field: str):
     bulk_query = []
     for row in es_data:
-        bulk_query.extend([
-            json.dumps({
-                'index': {
-                    '_index': index_name,
-                    '_id': row[es_id_field],
-                }
-            }),
-            json.dumps(row)
-        ])
+        bulk_query.extend(
+            [
+                json.dumps(
+                    {
+                        'index': {
+                            '_index': index_name,
+                            '_id': row[es_id_field],
+                        }
+                    }
+                ),
+                json.dumps(row),
+            ]
+        )
     return bulk_query
 
 

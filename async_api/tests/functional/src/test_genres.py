@@ -1,5 +1,7 @@
-import pytest
 from http import HTTPStatus
+
+import pytest
+
 from ..testdata.genres_data import GENRE_DATA, GENRES_LIST_DATA
 
 
@@ -12,8 +14,11 @@ pytest_mark = pytest.mark.asyncio
 )
 @pytest_mark
 async def test_get_all_genres(
-        redis_client, es_write_data, service_get_data,
-        es_data, expected_data,
+    redis_client,
+    es_write_data,
+    service_get_data,
+    es_data,
+    expected_data,
 ):
     """
     Тест: получение всех персоналий
@@ -33,8 +38,7 @@ async def test_get_all_genres(
 )
 @pytest_mark
 async def test_get_genre(
-        redis_client, es_write_data, service_get_data,
-        genre_id, es_data, expected_data
+    redis_client, es_write_data, service_get_data, genre_id, es_data, expected_data
 ):
     """
     Тест: поиск по uuid

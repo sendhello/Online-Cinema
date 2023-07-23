@@ -1,4 +1,4 @@
-from pydantic import EmailStr
+from pydantic import EmailStr, Field, root_validator
 
 from .base import Model
 from .mixins import IdMixin
@@ -22,10 +22,34 @@ class UserCreate(UserLogin, PersonalUser):
     pass
 
 
+class GoogleUserCreate(BaseUser, PersonalUser):
+    google_id: str
+
+
 class UserCreated(BaseUser, PersonalUser, IdMixin):
     """Модель пользователя при выводе после регистрации."""
 
     pass
+
+
+class UserResponse(UserCreated):
+    """Модель пользователя при авторизации.
+
+    Умеет распаршивать модель UserInDB
+    """
+
+    login: str | None
+    role: str | None
+    rules: list[str] = Field(default_factory=list)
+
+    @root_validator(pre=True)
+    def set_rules(cls, values: dict) -> dict:
+        role = values.get('role', {})
+        if isinstance(role, RoleInDB):
+            values['rules'] = role.rules
+            values['role'] = role.title
+
+        return values
 
 
 class UserInDB(UserCreated):

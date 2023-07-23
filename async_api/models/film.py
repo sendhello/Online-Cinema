@@ -6,12 +6,13 @@ class Person(Model, UUIDMixin):
 
 
 class Film(Model, UUIDMixin):
-    """Модель фильма из БД.
-    """
+    """Модель фильма из БД."""
+
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
     description: str | None
     genre: str | None
+    new: bool | None
     actors: list[Person] = []
     writers: list[Person] = []
     directors: list[Person] = []
@@ -23,3 +24,4 @@ class FilmShort(Model):
     id: str
     title: str
     imdb_rating: float
+    new: bool | None

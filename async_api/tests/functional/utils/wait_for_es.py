@@ -16,5 +16,6 @@ async def wait_for_es():
         raise ConnectionError('Connect to elasticsearch is failed.')
     return es_client
 
+
 if __name__ == '__main__':
     asyncio.run(wait_for_es())

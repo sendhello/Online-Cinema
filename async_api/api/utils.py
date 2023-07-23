@@ -1,38 +1,43 @@
 from typing import Annotated
 
-from fastapi import Query
-
 from api.schemas import PersonFilm
+from fastapi import Query
 from models.person import Person
 from services.film import FilmService
 
 
 class PaginateQueryParams:
-    """Dependency class to parse pagination query params.
-    """
+    """Dependency class to parse pagination query params."""
+
     def __init__(
         self,
-        page_number: Annotated[int, Query(
-            title="Номер страницы",
-            description="Номер возвращаемой страницы",
-            ge=1,
-        )] = 1,
-        page_size: Annotated[int, Query(
-            title="Размер страницы",
-            description="Число элементов на странице",
-            ge=1,
-            le=500,
-        )] = 50,
+        page_number: Annotated[
+            int,
+            Query(
+                title="Номер страницы",
+                description="Номер возвращаемой страницы",
+                ge=1,
+            ),
+        ] = 1,
+        page_size: Annotated[
+            int,
+            Query(
+                title="Размер страницы",
+                description="Число элементов на странице",
+                ge=1,
+                le=500,
+            ),
+        ] = 50,
     ):
         self.page_number = page_number
         self.page_size = page_size
 
 
 async def get_person_films(
-        page_size: int,
-        page_number: int,
-        film_service: FilmService,
-        person: Person,
+    page_size: int,
+    page_number: int,
+    film_service: FilmService,
+    person: Person,
 ) -> list[PersonFilm]:
     films = await film_service.filter(
         page_size=page_size,

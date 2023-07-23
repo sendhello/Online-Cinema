@@ -12,8 +12,7 @@ class BaseService(AbstractService, ABC):
         self.request = request
 
     async def get_by_id(self, id_: UUID):
-        """Метод получения объекта по id.
-        """
+        """Метод получения объекта по id."""
         key = f'id:{id_}'
         data = await self.cache.get_from_cache(key)
 
@@ -31,6 +30,5 @@ class BaseService(AbstractService, ABC):
 
     @abstractmethod
     async def filter(self, **kwargs):
-        """Метод получения списка объектов по параметрам.
-        """
+        """Метод получения списка объектов по параметрам."""
         pass

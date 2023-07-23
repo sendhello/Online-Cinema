@@ -1,4 +1,10 @@
-from ..utils.models.person import PersonData, PersonFilmsData, PersonsData, PersonSearchData
+from ..utils.models.person import (
+    PersonData,
+    PersonFilmsData,
+    PersonsData,
+    PersonSearchData,
+)
+
 
 PERSONS_DATA = [
     PersonsData(
@@ -22,7 +28,9 @@ PERSONS_DATA = [
                 'full_name': 'George Kundashvilli',
             },
         ],
-    ).dict().values(),
+    )
+    .dict()
+    .values(),
 ]
 
 PERSON_BY_UUID_DATA = [
@@ -43,7 +51,9 @@ PERSON_BY_UUID_DATA = [
             'full_name': 'George Dzikovitskey',
             'films': [],
         },
-    ).dict().values(),
+    )
+    .dict()
+    .values(),
 ]
 
 PERSON_FILMS_BY_UUID_DATA = [
@@ -69,7 +79,7 @@ PERSON_FILMS_BY_UUID_DATA = [
                     "actors": [
                         {
                             'id': '11111111-1111-1111-1111-111111111111',
-                            'name': 'George Dzikovitskey'
+                            'name': 'George Dzikovitskey',
                         },
                     ],
                     "writers": [],
@@ -80,10 +90,12 @@ PERSON_FILMS_BY_UUID_DATA = [
             {
                 'uuid': '22222222-2222-2222-2222-222222222222',
                 'title': 'Super movie',
-                'imdb_rating': 8.1
+                'imdb_rating': 8.1,
             },
         ],
-    ).dict().values(),
+    )
+    .dict()
+    .values(),
 ]
 PERSON_SEARCH_DATA = [
     PersonSearchData(
@@ -112,7 +124,7 @@ PERSON_SEARCH_DATA = [
                     "actors": [
                         {
                             'id': '11111111-1111-1111-1111-111111111111',
-                            'name': 'George Dzikovitskey'
+                            'name': 'George Dzikovitskey',
                         },
                     ],
                     "writers": [],
@@ -129,7 +141,7 @@ PERSON_SEARCH_DATA = [
                     "actors": [
                         {
                             'id': '11111111-1111-1111-1111-111111111111',
-                            'name': 'George Dzikovitskey'
+                            'name': 'George Dzikovitskey',
                         },
                         {
                             'id': '22222222-2222-2222-2222-222222222222',
@@ -153,7 +165,6 @@ PERSON_SEARCH_DATA = [
                         'uuid': '11111111-1111-1111-1111-111111111111',
                         'roles': ['actors'],
                     },
-
                 ],
             },
             {
@@ -167,5 +178,7 @@ PERSON_SEARCH_DATA = [
                 ],
             },
         ],
-    ).dict().values(),
+    )
+    .dict()
+    .values(),
 ]

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-14 17:38+0000\n"
+"POT-Creation-Date: 2023-07-18 18:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,102 +20,117 @@ msgstr ""
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: movies/admin.py:14
+#: admin_panel/movies/admin.py:15
 msgid "short_description"
 msgstr "Краткое описание"
 
-#: movies/admin.py:46
+#: admin_panel/movies/admin.py:54
 msgid "short_creation_year"
 msgstr "Год создания"
 
-#: movies/apps.py:8
+#: admin_panel/movies/apps.py:8
 msgid "movies"
 msgstr "Фильмы"
 
-#: movies/models.py:8 movies/models.py:81 movies/models.py:99
-msgid "created"
-msgstr "Создано"
-
-#: movies/models.py:9
-msgid "modified"
-msgstr "Изменено"
-
-#: movies/models.py:24 movies/models.py:42
-msgid "name"
-msgstr "Название"
-
-#: movies/models.py:25 movies/models.py:60
-msgid "description"
-msgstr "Описание"
-
-#: movies/models.py:29 movies/models.py:85
-msgid "genre"
-msgstr "Жанр"
-
-#: movies/models.py:30 movies/models.py:86
-msgid "genres"
-msgstr "Жанры"
-
-#: movies/models.py:37
-msgid "male"
-msgstr "Мужской"
-
-#: movies/models.py:38
-msgid "female"
-msgstr "Женский"
-
-#: movies/models.py:43
-msgid "gender"
-msgstr "Пол"
-
-#: movies/models.py:47 movies/models.py:103
-msgid "person"
-msgstr "Персона"
-
-#: movies/models.py:48 movies/models.py:104
-msgid "people"
-msgstr "Персоны"
-
-#: movies/models.py:59
+#: admin_panel/movies/models/film_work.py:15
 msgid "title"
 msgstr "Название"
 
-#: movies/models.py:61
+#: admin_panel/movies/models/film_work.py:16
+#: admin_panel/movies/models/genre.py:9
+msgid "description"
+msgstr "Описание"
+
+#: admin_panel/movies/models/film_work.py:17
 msgid "creation_date"
 msgstr "Дата создания"
 
-#: movies/models.py:62
+#: admin_panel/movies/models/film_work.py:19
 msgid "rating"
 msgstr "Рейтинг"
 
-#: movies/models.py:63
+#: admin_panel/movies/models/film_work.py:24
 msgid "type"
 msgstr "Тип"
 
-#: movies/models.py:66
+#: admin_panel/movies/models/film_work.py:25
+msgid "new"
+msgstr "Новинка"
+
+#: admin_panel/movies/models/film_work.py:29
 msgid "certificate"
 msgstr "Лицензия"
 
-#: movies/models.py:67
+#: admin_panel/movies/models/film_work.py:31
 msgid "file"
 msgstr "Файл"
 
-#: movies/models.py:71
+#: admin_panel/movies/models/film_work.py:35
 msgid "film_work"
 msgstr "Кинопроизведение"
 
-#: movies/models.py:72
+#: admin_panel/movies/models/film_work.py:36
 msgid "film_works"
 msgstr "Кинопроизведения"
 
-#: movies/models.py:90
+#: admin_panel/movies/models/genre.py:8 admin_panel/movies/models/person.py:13
+msgid "name"
+msgstr "Название"
+
+#: admin_panel/movies/models/genre.py:13 admin_panel/movies/models/shakes.py:17
+msgid "genre"
+msgstr "Жанр"
+
+#: admin_panel/movies/models/genre.py:14 admin_panel/movies/models/shakes.py:18
+msgid "genres"
+msgstr "Жанры"
+
+#: admin_panel/movies/models/mixins.py:8 admin_panel/movies/models/shakes.py:13
+#: admin_panel/movies/models/shakes.py:37
+msgid "created"
+msgstr "Создано"
+
+#: admin_panel/movies/models/mixins.py:9
+msgid "modified"
+msgstr "Изменено"
+
+#: admin_panel/movies/models/person.py:8
+msgid "male"
+msgstr "Мужской"
+
+#: admin_panel/movies/models/person.py:9
+msgid "female"
+msgstr "Женский"
+
+#: admin_panel/movies/models/person.py:14
+msgid "gender"
+msgstr "Пол"
+
+#: admin_panel/movies/models/person.py:18
+#: admin_panel/movies/models/shakes.py:41
+msgid "person"
+msgstr "Персона"
+
+#: admin_panel/movies/models/person.py:19
+#: admin_panel/movies/models/shakes.py:42
+msgid "people"
+msgstr "Персоны"
+
+#: admin_panel/movies/models/shakes.py:28
 msgid "actor"
 msgstr "Актер"
 
-#: movies/models.py:91
-msgid "producer"
-msgstr "Продюсер"
+#: admin_panel/movies/models/shakes.py:29
+msgid "writer"
+msgstr "писатель"
 
-#: movies/models.py:92
+#: admin_panel/movies/models/shakes.py:30
 msgid "director"
 msgstr "Директор"
+
+#: admin_panel/movies/models/shakes.py:36
+msgid "profession"
+msgstr "профессия"
+
+#~ msgid "producer"
+#~ msgstr "Продюсер"

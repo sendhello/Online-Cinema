@@ -3,16 +3,22 @@ from http import HTTPStatus
 from uuid import UUID
 
 import jmespath
-from elasticsearch import AsyncElasticsearch, BadRequestError, ConnectionError, NotFoundError
-from fastapi import HTTPException
-from pydantic import BaseModel, Field, validator
-
 from constants import Index, LogicType, QueryType
+from elasticsearch import (
+    ApiError,
+    AsyncElasticsearch,
+    BadRequestError,
+    ConnectionError,
+    NotFoundError,
+)
+from fastapi import HTTPException
 from models.film import Film
 from models.genre import Genre
 from models.person import Person
+from pydantic import BaseModel, Field, validator
 
 from .abstract import AbstractDBRequest
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +32,8 @@ ModelMap = {
 
 
 class QueryFilter(BaseModel):
-    """Модель запроса для поиска.
-    """
+    """Модель запроса для поиска."""
+
     type: QueryType = Field(title='Тип поиска')
     query: str = Field(title='Текст запроса')
     fields: list[str] = Field(title='Список полей для поиска')
@@ -35,8 +41,7 @@ class QueryFilter(BaseModel):
 
     @validator('fields')
     def validate_fields(cls, val: list[str]) -> list[str]:
-        """Валидация наличия полей в поле fields, список не должен быть пустым
-        """
+        """Валидация наличия полей в поле fields, список не должен быть пустым"""
         if not val:
             raise ValueError('Поле fields не может быть пустым списком')
 
@@ -56,13 +61,15 @@ class Query(dict):
         must = bool_.setdefault('must', [])
 
         if query_filter.type == QueryType.MULTI_MATCH:
-            must.append({
-                'multi_match': {
-                    'query': query_filter.query,
-                    'fields': query_filter.fields,
-                    'fuzziness': 'auto',
+            must.append(
+                {
+                    'multi_match': {
+                        'query': query_filter.query,
+                        'fields': query_filter.fields,
+                        'fuzziness': 'auto',
+                    }
                 }
-            })
+            )
 
         should_filter = {}
         if query_filter.fields_type == LogicType.MUST:
@@ -76,13 +83,12 @@ class Query(dict):
             raise ValueError('Field fields_type not correct')
 
         if query_filter.type == QueryType.MATCH:
-            filters.extend([
-                {
-                    'match': {
-                        field: query_filter.query
-                    }
-                } for field in query_filter.fields
-            ])
+            filters.extend(
+                [
+                    {'match': {field: query_filter.query}}
+                    for field in query_filter.fields
+                ]
+            )
 
         if query_filter.type == QueryType.NESTED:
             filters.extend(
@@ -95,7 +101,8 @@ class Query(dict):
                             }
                         },
                     }
-                } for field in query_filter.fields
+                }
+                for field in query_filter.fields
             )
 
         if should_filter:
@@ -114,8 +121,7 @@ class ElasticRequest(AbstractDBRequest):
         self.model = model
 
     async def get_by_id(self, id_: UUID) -> ModelType | None:
-        """Метод получения объекта по id.
-        """
+        """Метод получения объекта по id."""
         try:
             doc = await self.elastic.get(index=self.index, id=id_)
 
@@ -123,7 +129,14 @@ class ElasticRequest(AbstractDBRequest):
             return None
 
         except ConnectionError as e:
-            raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message)
+            raise HTTPException(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message
+            )
+
+        except ApiError as e:
+            raise HTTPException(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message
+            )
 
         return self.model(**doc['_source'])
 
@@ -160,14 +173,18 @@ class ElasticRequest(AbstractDBRequest):
                 query=query,
                 sort=sort,
                 size=size,
-                from_=(page_number - 1) * size
+                from_=(page_number - 1) * size,
             )
         except BadRequestError as e:
             error_message = jmespath.search('error.root_cause[0].reason', e.body)
-            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=error_message)
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail=error_message
+            )
 
         except ConnectionError as e:
-            raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message)
+            raise HTTPException(
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=e.message
+            )
 
         hits = response.get('hits', {}).get('hits', [])
         logging.debug(f"response[0]: {hits[0]['_source']}" if hits else '{}')

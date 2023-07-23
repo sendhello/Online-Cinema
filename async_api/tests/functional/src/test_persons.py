@@ -1,6 +1,8 @@
-import pytest
 from http import HTTPStatus
 from typing import Callable
+
+import pytest
+
 from ..testdata.persons_data import (
     PERSON_BY_UUID_DATA,
     PERSON_FILMS_BY_UUID_DATA,
@@ -18,11 +20,11 @@ pytest_mark = pytest.mark.asyncio
 )
 @pytest_mark
 async def test_get_all_persons(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        es_data: list[dict],
-        expected_data: str,
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    es_data: list[dict],
+    expected_data: str,
 ):
     """
     Тест: получение всех персоналий
@@ -42,10 +44,12 @@ async def test_get_all_persons(
 )
 @pytest_mark
 async def test_get_person(
-        redis_client,
-        es_write_data: Callable,
-        service_get_data: Callable,
-        uuid_person, es_data, expected_data
+    redis_client,
+    es_write_data: Callable,
+    service_get_data: Callable,
+    uuid_person,
+    es_data,
+    expected_data,
 ):
     """
     Тест: поиск по uuid
@@ -65,8 +69,12 @@ async def test_get_person(
 )
 @pytest_mark
 async def test_get_person_film(
-        redis_client, es_write_data, service_get_data,
-        uuid_person, es_data, expected_data,
+    redis_client,
+    es_write_data,
+    service_get_data,
+    uuid_person,
+    es_data,
+    expected_data,
 ):
     """
     Тест: получение фильмов персоналии
@@ -87,8 +95,12 @@ async def test_get_person_film(
 )
 @pytest_mark
 async def test_get_person_search(
-        redis_client, es_write_data, service_get_data,
-        expected_data, es_data, params,
+    redis_client,
+    es_write_data,
+    service_get_data,
+    expected_data,
+    es_data,
+    params,
 ):
     """
     Тест: Поиск по имени

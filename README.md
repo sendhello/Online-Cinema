@@ -18,6 +18,9 @@
 docker compose up --build
 ```
 
+### Jaeger-Трассировка 
+http://localhost:16686
+
 ### Запуск functional-тестов
 
 ##### Сейвис Async-API

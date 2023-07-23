@@ -1,6 +1,7 @@
+from pydantic import BaseModel
+
 from .base_models import IDMixin, UUIDMixin
 from .film import EsFilm
-from pydantic import BaseModel
 
 
 class PersonUUID(UUIDMixin):
@@ -18,7 +19,7 @@ class PersonFilm(UUIDMixin):
 class FilmShort(BaseModel):
     uuid: str
     title: str
-    imdb_rating: float
+    imdb_rating: float | None
 
 
 class PersonDescription(UUIDMixin):

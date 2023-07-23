@@ -3,7 +3,9 @@ from pydantic import BaseSettings, Field
 
 class LoggingSettings(BaseSettings):
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    log_default_handlers = ['console', ]
+    log_default_handlers = [
+        'console',
+    ]
 
     log_level_handlers = Field('DEBUG', env='LOG_LEVEL_HANDLERS')
     log_level_loggers = Field('INFO', env='LOG_LEVEL_LOGGERS')
@@ -17,9 +19,7 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': log_settings.log_format
-        },
+        'verbose': {'format': log_settings.log_format},
         'default': {
             '()': 'uvicorn.logging.DefaultFormatter',
             'fmt': '%(levelprefix)s %(message)s',

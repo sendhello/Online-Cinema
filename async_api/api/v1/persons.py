@@ -2,13 +2,14 @@ from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-
 from api.schemas import Film, Person, PersonDescription
 from api.utils import PaginateQueryParams, get_person_films
 from constants import FilmSort
+from fastapi import APIRouter, Depends, HTTPException, Query
+from security import security_jwt
 from services.film import FilmService, get_film_service
 from services.person import PersonService, get_person_service
+
 
 router = APIRouter()
 
@@ -20,11 +21,11 @@ router = APIRouter()
     description="Получения списка всех персон",
 )
 async def persons(
-        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
-        person_service: Annotated[PersonService, Depends(get_person_service)],
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+    person_service: Annotated[PersonService, Depends(get_person_service)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> list[Person]:
-    """Список фильмов.
-    """
+    """Список фильмов."""
     persons = await person_service.filter(
         page_size=paginate.page_size,
         page_number=paginate.page_number,
@@ -40,13 +41,13 @@ async def persons(
     description="Полнотекстовый поиск по персонам",
 )
 async def person_search(
-        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
-        person_service: Annotated[PersonService, Depends(get_person_service)],
-        film_service: Annotated[FilmService, Depends(get_film_service)],
-        query: Annotated[str | None, Query(max_length=255)] = None,
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+    person_service: Annotated[PersonService, Depends(get_person_service)],
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    user: Annotated[dict | None, Depends(security_jwt)],
+    query: Annotated[str | None, Query(max_length=255)] = None,
 ) -> list[PersonDescription]:
-    """Поиск по персонам.
-    """
+    """Поиск по персонам."""
     result = []
 
     persons = await person_service.filter(
@@ -81,13 +82,13 @@ async def person_search(
     description="Получение польной информации по фильму по его ID",
 )
 async def person_details(
-        person_id: UUID,
-        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
-        person_service: Annotated[PersonService, Depends(get_person_service)],
-        film_service: Annotated[FilmService, Depends(get_film_service)],
+    person_id: UUID,
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+    person_service: Annotated[PersonService, Depends(get_person_service)],
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    user: Annotated[dict | None, Depends(security_jwt)],
 ) -> PersonDescription:
-    """Страница персоны.
-    """
+    """Страница персоны."""
     person = await person_service.get_by_id(person_id)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
@@ -113,14 +114,14 @@ async def person_details(
     description="Получение фильма по ID персоны",
 )
 async def person_films(
-        person_id: UUID,
-        paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
-        person_service: Annotated[PersonService, Depends(get_person_service)],
-        film_service: Annotated[FilmService, Depends(get_film_service)],
-        sort: FilmSort | None = None,
+    person_id: UUID,
+    paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
+    person_service: Annotated[PersonService, Depends(get_person_service)],
+    film_service: Annotated[FilmService, Depends(get_film_service)],
+    user: Annotated[dict | None, Depends(security_jwt)],
+    sort: FilmSort | None = None,
 ) -> list[Film]:
-    """Фильмы с персоной.
-    """
+    """Фильмы с персоной."""
     person = await person_service.get_by_id(person_id)
     if not person:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')

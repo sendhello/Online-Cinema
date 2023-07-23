@@ -7,7 +7,8 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security.http import HTTPBearer
 from models.role import Rules
 from redis.asyncio import Redis
-from schemas import UserInDB
+from schemas import UserResponse
+from security.rate_limit import is_rate_limit_exceeded
 from starlette import status
 
 
@@ -22,12 +23,17 @@ async def full_protected(
     except AuthJWTException as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
+    current_access_token = credentials.credentials
+    if await is_rate_limit_exceeded(current_access_token):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests'
+        )
+
     access_key = await authorize.get_jwt_subject()
     blocked_access_tokens = await redis.smembers(access_key)
     if not blocked_access_tokens:
         return authorize
 
-    current_access_token = credentials.credentials
     if current_access_token not in blocked_access_tokens:
         return authorize
 
@@ -47,6 +53,12 @@ async def partial_protected(
     except AuthJWTException as e:
         raise HTTPException(status_code=e.status_code, detail=str(e))
 
+    current_access_token = credentials.credentials
+    if await is_rate_limit_exceeded(current_access_token):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests'
+        )
+
     access_key = await authorize.get_jwt_subject()
     if access_key is None:
         return authorize
@@ -55,7 +67,6 @@ async def partial_protected(
     if not blocked_access_tokens:
         return authorize
 
-    current_access_token = credentials.credentials
     if current_access_token not in blocked_access_tokens:
         return authorize
 
@@ -107,13 +118,13 @@ async def admin_protected(
         )
 
     user_claim = await authorize.get_raw_jwt()
-    current_user = UserInDB.parse_obj(user_claim)
+    current_user = UserResponse.parse_obj(user_claim)
     if current_user.role is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
         )
 
-    if Rules.admin_rules not in current_user.role.rules:
+    if Rules.admin_rules not in current_user.rules:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
         )

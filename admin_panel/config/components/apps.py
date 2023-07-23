@@ -10,9 +10,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'movies.apps.MoviesConfig',
     'django_extensions',
     'corsheaders',
+    'movies',
+    'users',
 ]
 
 if os.environ.get('DEBUG', 'False').title() == 'True':

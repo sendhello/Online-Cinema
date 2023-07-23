@@ -1,5 +1,6 @@
-# db/postgres.py
+import sqlalchemy  # noqa
 from core.settings import settings
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
@@ -11,6 +12,9 @@ Base = declarative_base()
 # Настройки подключения к БД передаём из переменных окружения, которые заранее загружены в файл настроек
 engine = create_async_engine(settings.pg_dsn, echo=settings.debug, future=True)
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+if settings.jaeger_trace:
+    SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
 
 
 async def get_session() -> AsyncSession:
