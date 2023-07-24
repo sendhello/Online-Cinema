@@ -22,8 +22,8 @@ class UserCreate(UserLogin, PersonalUser):
     pass
 
 
-class GoogleUserCreate(BaseUser, PersonalUser):
-    google_id: str
+class SocialUserCreate(BaseUser, PersonalUser):
+    pass
 
 
 class UserCreated(BaseUser, PersonalUser, IdMixin):

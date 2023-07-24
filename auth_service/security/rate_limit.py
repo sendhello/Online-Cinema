@@ -11,7 +11,12 @@ async def is_rate_limit_exceeded(token):
     и возвращает True при превышении лимита запросов.
 
     Пользователем считается владелец access-токена
+
+    Если REQUEST_LIMIT_PER_MINUTE равен 0 - лимит запросов не проверяется
     """
+    if settings.request_limit == 0:
+        return False
+
     redis = await get_redis()
     now = datetime.now()
     key = f'{token}:{now.minute}'

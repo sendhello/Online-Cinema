@@ -44,12 +44,12 @@ async def change_user(user_update: UserUpdate, authorize: AuthJWT = Depends()):
     db_user = await User.get_by_email(email=current_user.email)
     if db_user is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect userdata'
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect userdata'
         )
 
     if not db_user.check_password(user_update.current_password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect password'
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect password'
         )
 
     user_dto = jsonable_encoder(user_update)
@@ -76,12 +76,12 @@ async def change_password(
     db_user = await User.get_by_email(email=current_user.email)
     if db_user is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect userdata'
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect userdata'
         )
 
     if not db_user.check_password(user_change_password.current_password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Incorrect password'
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect password'
         )
 
     user_dto = jsonable_encoder(user_change_password)

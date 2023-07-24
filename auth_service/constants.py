@@ -26,3 +26,7 @@ class Action(str, Enum):
     read = 'read'
     update = 'update'
     delete = 'delete'
+
+
+class SocialType(str, Enum):
+    google = 'google'

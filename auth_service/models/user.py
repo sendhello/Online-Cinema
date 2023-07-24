@@ -17,9 +17,9 @@ class User(Base, IDMixin, CRUDMixin):
     password = Column(String(255))
     first_name = Column(String(50))
     last_name = Column(String(50))
-    google_id = Column(String(255), unique=True)
     role_id = Column(UUID, ForeignKey('roles.id'))
     role = relationship('Role', back_populates='users')
+    socials = relationship('Social', back_populates='user', passive_deletes=True)
     history = relationship('History', back_populates='user', passive_deletes=True)
 
     def __init__(
@@ -28,7 +28,6 @@ class User(Base, IDMixin, CRUDMixin):
         first_name: str,
         last_name: str,
         password: str = None,
-        google_id: str = None,
     ) -> None:
         self.email = email
         self.password = (
@@ -36,7 +35,6 @@ class User(Base, IDMixin, CRUDMixin):
         )
         self.first_name = first_name
         self.last_name = last_name
-        self.google_id = google_id
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password, password)
@@ -68,19 +66,6 @@ class User(Base, IDMixin, CRUDMixin):
         return user
 
     @classmethod
-    async def get_by_google_id(cls, google_id: str) -> Self:
-        async with async_session() as session:
-            request = (
-                select(cls)
-                .options(joinedload(cls.role))
-                .where(cls.google_id == google_id)
-            )
-            result = await session.execute(request)
-            user = result.scalars().first()
-
-        return user
-
-    @classmethod
     async def get_all(cls, page: int = 1, page_size: int = 20) -> list[Self]:
         async with async_session() as session:
             request = (
@@ -105,3 +90,21 @@ class User(Base, IDMixin, CRUDMixin):
 
     def __repr__(self) -> str:
         return f'<User {self.email}>'
+
+
+class Social(Base, IDMixin, CRUDMixin):
+    __tablename__ = 'socials'
+
+    social_id = Column(String(255), nullable=False, unique=True)
+    type = Column(String(255), nullable=False)
+    user_id = Column(UUID, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user = relationship('User', back_populates='socials')
+
+    @classmethod
+    async def get_by_social_id(cls, social_id: str) -> Self:
+        async with async_session() as session:
+            request = select(cls).where(cls.social_id == social_id)
+            result = await session.execute(request)
+            entity = result.scalars().first()
+
+        return entity
