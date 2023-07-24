@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from async_fastapi_jwt_auth import AuthJWT
-from constants import GOOGLE_SCOPES
+from constants import GOOGLE_SCOPES, SocialType
 from core.settings import settings
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
@@ -9,10 +9,11 @@ from fastapi.logger import logger
 from fastapi.responses import RedirectResponse
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-from models import History, User
+from models import History, Social, User
 from schemas import (
     GoogleToken,
-    GoogleUserCreate,
+    SocialDB,
+    SocialUserCreate,
     Tokens,
     UserCreated,
     UserInfo,
@@ -78,22 +79,30 @@ async def auth_return(
     raw_user_info = user_info_service.userinfo().get().execute()
     user_info = UserInfo.parse_obj(raw_user_info)
 
-    db_user = await User.get_by_google_id(google_id=user_info.id)
+    db_social = await Social.get_by_social_id(social_id=user_info.id)
+    if db_social is not None:
+        social = SocialDB.from_orm(db_social)
+        db_user = await User.get_by_id(id_=social.user_id)
+    else:
+        db_user = None
+
     if db_user is None:
-        google_user_create = GoogleUserCreate(
-            google_id=user_info.id,
+        user_create = SocialUserCreate(
             email=user_info.email,
             first_name=user_info.given_name,
             last_name=user_info.family_name,
         )
-        user_dto = jsonable_encoder(google_user_create)
+        user_dto = jsonable_encoder(user_create)
         try:
             db_user = await User.create(**user_dto)
+            await Social.create(
+                social_id=user_info.id, type=SocialType.google, user_id=db_user.id
+            )
 
         except IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail='User with such login is registered already',
+                detail='User with such email is registered already',
             )
 
     user_in_db = UserCreated.from_orm(db_user)
