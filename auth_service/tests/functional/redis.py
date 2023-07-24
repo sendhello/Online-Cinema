@@ -1,3 +1,14 @@
+class MockPipe:
+    def incr(self, key: str, inc: int):
+        pass
+
+    def expire(self, key: str, exp: int):
+        pass
+
+    async def execute(self):
+        return [1]
+
+
 class MockRedis:
     def __init__(self):
         self._mem = {}
@@ -27,6 +38,9 @@ class MockRedis:
     async def flush(self):
         self._mem = {}
         return self._mem
+
+    def pipeline(self):
+        return MockPipe()
 
 
 redis = MockRedis()

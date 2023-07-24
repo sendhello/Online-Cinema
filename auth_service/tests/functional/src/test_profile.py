@@ -7,6 +7,7 @@ from tests.functional.utils import get_headers, redis_flush
 
 
 loop = asyncio.get_event_loop()
+pytestmark = pytest.mark.asyncio  # noqa
 
 
 @pytest.mark.parametrize(
@@ -28,7 +29,6 @@ loop = asyncio.get_event_loop()
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_profile(client, mock_redis, user, status_code, result):
     response = client.get("api/v1/profile/", headers=await get_headers(user))
     assert response.status_code == status_code
@@ -51,7 +51,6 @@ async def test_profile(client, mock_redis, user, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_profile_history(client, mock_redis, user, status_code, result):
     response = client.get("api/v1/profile/history", headers=await get_headers(user))
     assert response.status_code == status_code
@@ -85,7 +84,6 @@ async def test_profile_history(client, mock_redis, user, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_profile_update(client, mock_redis, user, status_code, result):
     response = client.post(
         "api/v1/profile/update", headers=await get_headers(user), json=user
@@ -120,7 +118,6 @@ async def test_profile_update(client, mock_redis, user, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_profile_change_password(
     client, mock_redis, user, change_password, status_code, result
 ):

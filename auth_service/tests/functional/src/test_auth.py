@@ -7,6 +7,7 @@ from tests.functional.utils import generate_tokens, get_headers, redis_flush
 
 
 loop = asyncio.get_event_loop()
+pytestmark = pytest.mark.asyncio  # noqa
 
 
 @pytest.mark.parametrize(
@@ -25,7 +26,6 @@ loop = asyncio.get_event_loop()
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_create_user(client, mock_redis, user, status_code, result):
     response = client.post('api/v1/auth/signup', json=user, headers=await get_headers())
     assert response.status_code == status_code
@@ -46,7 +46,6 @@ async def test_create_user(client, mock_redis, user, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_login(client, mock_redis, login_data, status_code, result_keys):
     response = client.post(
         "api/v1/auth/login", json=login_data, headers=await get_headers()
@@ -65,7 +64,6 @@ async def test_login(client, mock_redis, login_data, status_code, result_keys):
         (USER, 200, ['access_token', 'refresh_token']),
     ],
 )
-@pytest.mark.asyncio
 async def test_refresh(client, mock_redis, user, status_code, result_keys):
     tokens = await generate_tokens(user)
     refresh_token = tokens['refresh_token']
@@ -85,7 +83,6 @@ async def test_refresh(client, mock_redis, user, status_code, result_keys):
         (USER, 200, {}),
     ],
 )
-@pytest.mark.asyncio
 async def test_logout(client, mock_redis, user, status_code, result):
     response = client.post("api/v1/auth/logout", headers=await get_headers(user))
     assert response.status_code == status_code

@@ -6,6 +6,7 @@ from tests.functional.utils import get_admin_headers, redis_flush
 
 
 loop = asyncio.get_event_loop()
+pytestmark = pytest.mark.asyncio  # noqa
 
 
 @pytest.mark.parametrize(
@@ -24,7 +25,6 @@ loop = asyncio.get_event_loop()
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_roles_get(client, mock_redis, status_code, result):
     response = client.get("api/v1/roles/", headers=await get_admin_headers())
     assert response.status_code == status_code
@@ -49,7 +49,6 @@ async def test_roles_get(client, mock_redis, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_roles_get_id(client, mock_redis, id_, status_code, result):
     response = client.get(f"api/v1/roles/{id_}", headers=await get_admin_headers())
     assert response.status_code == status_code
@@ -74,7 +73,6 @@ async def test_roles_get_id(client, mock_redis, id_, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_roles_delete(client, mock_redis, id_, status_code, result):
     response = client.delete(f"api/v1/roles/{id_}", headers=await get_admin_headers())
     assert response.status_code == status_code
@@ -107,7 +105,6 @@ async def test_roles_delete(client, mock_redis, id_, status_code, result):
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_roles_set_rule(client, mock_redis, id_, rule, status_code, result):
     response = client.post(
         f"api/v1/roles/{id_}/set_rule?rule={rule}", headers=await get_admin_headers()
@@ -142,7 +139,6 @@ async def test_roles_set_rule(client, mock_redis, id_, rule, status_code, result
         ),
     ],
 )
-@pytest.mark.asyncio
 async def test_roles_remove_rule(client, mock_redis, id_, rule, status_code, result):
     response = client.post(
         f"api/v1/roles/{id_}/remove_rule?rule={rule}", headers=await get_admin_headers()
