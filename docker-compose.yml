@@ -2,74 +2,6 @@ version: '3.8'
 
 services:
 
-  postgres:
-    container_name: postgres
-    hostname: postgres
-    image: postgres:15.2
-    networks:
-      - network
-    expose:
-      - "5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - admin_pgdata:/var/lib/postgresql/data/
-#      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U app -d movies_database" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  auth_postgres:
-    container_name: auth_postgres
-    hostname: auth_postgres
-    image: postgres:15.2
-    networks:
-      - network
-    ports:
-      - "5434:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${AUTH_POSTGRES_DB}
-    volumes:
-      - auth_pgdata:/var/lib/postgresql/data/
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  elasticsearch:
-    container_name: elasticsearch
-    hostname: elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
-    environment:
-      discovery.type: ${DISCOVERY_TYPE}
-      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    expose:
-      - "9200"
-    networks:
-      - network
-
-  redis:
-    container_name: redis
-    hostname: redis
-    image: redis:7.2-rc1
-    environment:
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
-    volumes:
-      - redis_data:/data
-    expose:
-      - "6379"
-    networks:
-      - network
-
   admin_panel:
     container_name: admin_panel
     hostname: admin_panel
@@ -153,8 +85,7 @@ services:
       USE_REDIS: ${USE_REDIS}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
-      LOAD_PACKAGE_SIZE: ${LOAD_PACKAGE_SIZE}
-      JSON_STORAGE_FILE: ${JSON_STORAGE_FILE}
+      LOAD_PACKAGE_SIZE: ${ETL_LOAD_PACKAGE_SIZE}
       ETL_LOAD_PACKAGE_SIZE: ${ETL_LOAD_PACKAGE_SIZE}
       SLEEP_TIME: ${SLEEP_TIME}
     networks:
@@ -215,6 +146,171 @@ services:
       - redis
       - postgres
 
+  notification_api:
+    container_name: notification_api
+    hostname: notification_api
+    build: notification_api
+    environment:
+      BACKOFF_MAX_TIME: ${NOTIFICATIONS_TASK_BACKOFF_MAX_TIME}
+      POSTGRES_HOST: ${NOTIFICATIONS_POSTGRES_HOST}
+      POSTGRES_PORT: ${NOTIFICATIONS_POSTGRES_PORT}
+      POSTGRES_DATABASE: ${NOTIFICATION_POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+      RABBITMQ_SOURCE_QUEUE_NAME: ${NOTIFICATIONS_RABBITMQ_SOURCE_QUEUE_NAME}
+      AUTH_GATEWAY: ${NOTIFICATIONS_AUTH_GATEWAY}
+    networks:
+      - network
+    expose:
+      - "8000"
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      notification_postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification_generator:
+    container_name: notification_generator
+    hostname: notification_generator
+    build: notification_generator
+    environment:
+      RABBITMQ_SEND_QUEUE_NAME: ${NOTIFICATION_GEN_RABBITMQ_SEND_QUEUE_NAME}
+      NOTIFICATION_API_GATEWAY: ${NOTIFICATION_API_GATEWAY}
+      REQUEST_PERIOD: ${REQUEST_PERIOD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+    networks:
+      - network
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      notification_api:
+        condition: service_started
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - admin_pgdata:/var/lib/postgresql/data/
+    #      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d movies_database" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth_postgres:
+    container_name: auth_postgres
+    hostname: auth_postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+    volumes:
+      - auth_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  notification_postgres:
+    container_name: notification_postgres
+    hostname: notification_postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${NOTIFICATION_POSTGRES_DB}
+    volumes:
+      - notification_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d notification" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+    environment:
+      discovery.type: ${DISCOVERY_TYPE}
+      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    expose:
+      - "9200"
+    networks:
+      - network
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    networks:
+      - network
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3.12.4-management-alpine
+    networks:
+      - network
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit disk_free_limit 2147483648
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+
   jaeger:
     container_name: jaeger
     hostname: jaeger
@@ -237,6 +333,7 @@ services:
       - api
       - admin_panel
       - auth
+      - notification_api
     ports:
       - "80:80"
     networks:
@@ -245,9 +342,11 @@ services:
 volumes:
   admin_pgdata:
   auth_pgdata:
+  notification_pgdata:
   redis_data:
   elasticsearch_data:
   static_volume:
+  rabbitmq:
 
 networks:
   network:
