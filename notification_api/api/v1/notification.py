@@ -8,6 +8,7 @@ from schemas.notification import (
     MessageScheme,
     NotificationDBScheme,
     NotificationFindScheme,
+    NotificationUpdateScheme,
 )
 from services.notification import NotificationService, get_notification_service
 
@@ -42,3 +43,14 @@ async def find_notification_tasks(
         need_send=need_send,
     )
     return messages
+
+
+@router.patch(
+    "/{id}",
+)
+async def update_notification(
+    id: UUID,
+    notification: NotificationUpdateScheme,
+    notification_service: NotificationService = Depends(get_notification_service),
+) -> NotificationDBScheme | None:
+    return await notification_service.update(id, notification)

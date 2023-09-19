@@ -9,7 +9,13 @@ from constants import NotificationStatus, TaskStatus
 from core.get_logger import logger
 from db.postgres import get_async_session
 from repository.notification import NotificationRepository
-from schemas.notification import MessageScheme, NotificationCreateScheme, NotificationDBScheme, NotificationFindScheme
+from schemas.notification import (
+    MessageScheme,
+    NotificationCreateScheme,
+    NotificationDBScheme,
+    NotificationFindScheme,
+    NotificationUpdateScheme,
+)
 from schemas.task import TaskFindScheme, TaskUpdateScheme
 from services.task import TaskService
 
@@ -35,6 +41,12 @@ class NotificationService:
         result = await self.notifications.read_optional(find_query.dict(exclude_none=True))
         logger.debug("Found records")
         return [NotificationDBScheme.from_orm(item) for item in result]
+
+    async def update(self, id: UUID, notification: NotificationUpdateScheme) -> NotificationDBScheme:
+        old_notification = await self.get(id)
+        result = await self.notifications.update(old_notification, notification)
+        logger.debug(f"Notification {id} was updated")
+        return result
 
     async def set_status(self, id: UUID, status: NotificationStatus, request_id: str) -> bool:
         old_notification = await self.get(id)

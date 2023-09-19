@@ -5,10 +5,10 @@ from pydantic import Field
 
 from constants import NotificationStatus, TaskType
 
-from .base import BaseModel
+from .base import Model
 
 
-class NotificationCreateScheme(BaseModel):
+class NotificationCreateScheme(Model):
     task_id: UUID
     user_id: UUID
     status: NotificationStatus = Field(NotificationStatus.CREATED)
@@ -23,12 +23,16 @@ class NotificationDBScheme(NotificationCreateScheme):
         orm_mode = True
 
 
-class NotificationFindScheme(BaseModel):
+class NotificationFindScheme(Model):
     id: UUID | None
     created_at: datetime | None
     updated_at: datetime | None
     task_id: UUID | None
     user_id: UUID | None
+    status: NotificationStatus | None
+
+
+class NotificationUpdateScheme(Model):
     status: NotificationStatus | None
 
 

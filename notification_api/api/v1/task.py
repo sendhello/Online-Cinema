@@ -60,7 +60,7 @@ async def get_tasks(
 @router.patch(
     "/{id}",
 )
-async def update__task(
+async def update_task(
     id: UUID,
     task: TaskUpdateScheme,
     task_service: TaskService = Depends(get_task_service),
