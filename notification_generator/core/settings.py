@@ -36,6 +36,10 @@ class Settings(RabbitSettings):
 
     # Gateways
     notification_api_gateway: str
+    auth_gateway: str
+
+    admin_email: str
+    admin_password: str
 
 
 settings = Settings()

@@ -138,6 +138,8 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     networks:
       - network
     expose:
@@ -165,7 +167,7 @@ services:
       RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
       RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
       RABBITMQ_SOURCE_QUEUE_NAME: ${NOTIFICATIONS_RABBITMQ_SOURCE_QUEUE_NAME}
-      AUTH_GATEWAY: ${NOTIFICATIONS_AUTH_GATEWAY}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
     networks:
       - network
     expose:
@@ -184,6 +186,9 @@ services:
     environment:
       RABBITMQ_SEND_QUEUE_NAME: ${NOTIFICATION_GEN_RABBITMQ_SEND_QUEUE_NAME}
       NOTIFICATION_API_GATEWAY: ${NOTIFICATION_API_GATEWAY}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       REQUEST_PERIOD: ${REQUEST_PERIOD}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
@@ -308,8 +313,8 @@ services:
       test: rabbitmq-diagnostics check_port_connectivity
       interval: 10s
       timeout: 10s
-      retries: 6
-      start_period: 30s
+      retries: 10
+      start_period: 60s
 
   jaeger:
     container_name: jaeger
