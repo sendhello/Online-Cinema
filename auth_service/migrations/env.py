@@ -31,7 +31,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 configuration = config.get_section(config.config_ini_section, {})
-configuration['sqlalchemy.url'] = str(settings.pg_dsn)
+configuration["sqlalchemy.url"] = str(settings.pg_dsn)
 
 
 def run_migrations_offline() -> None:

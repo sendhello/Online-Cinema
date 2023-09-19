@@ -3,7 +3,7 @@ from pydantic import BaseSettings, Field
 
 
 class TestSettings(BaseSettings):
-    authjwt_secret_key: str = Field('secret', env='SECRET_KEY')
+    authjwt_secret_key: str = Field("secret", env="SECRET_KEY")
 
 
 @AuthJWT.load_config

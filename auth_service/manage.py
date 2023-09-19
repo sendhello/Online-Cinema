@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import asyncio
+import os
 import subprocess
 
 import typer
@@ -12,8 +13,8 @@ async def create_user(email: str, password: str) -> User:
         user = await User.create(
             email=email,
             password=password,
-            first_name='',
-            last_name='',
+            first_name="",
+            last_name="",
         )
 
     except IntegrityError:
@@ -21,7 +22,7 @@ async def create_user(email: str, password: str) -> User:
         return user
 
     try:
-        role = await Role.create(title='admin')
+        role = await Role.create(title="admin")
 
     except IntegrityError:
         return user
@@ -43,37 +44,35 @@ app = typer.Typer()
 def makemigrations(text: str):
     """Create migration with text."""
     result = subprocess.run(
-        ['alembic', 'revision', '--autogenerate', '-m', f'"{text}"'],
+        ["alembic", "revision", "--autogenerate", "-m", f'"{text}"'],
         capture_output=True,
         text=True,
     )
-    print('Log:', result.stdout)
-    print('Errors:', result.stderr)
+    print("Log:", result.stdout)
+    print("Errors:", result.stderr)
 
 
 @app.command()
 def migrate():
     """Upgrade migration."""
-    result = subprocess.run(
-        ['alembic', 'upgrade', 'head'], capture_output=True, text=True
-    )
-    print('Log:', result.stdout)
-    print('Errors:', result.stderr)
+    result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
+    print("Log:", result.stdout)
+    print("Errors:", result.stderr)
 
 
 @app.command()
 def rollback(migrate_hash: str):
     """Downgrade migration."""
-    result = subprocess.run(
-        ['alembic', 'downgrade', migrate_hash], capture_output=True, text=True
-    )
-    print('Log:', result.stdout)
-    print('Errors:', result.stderr)
+    result = subprocess.run(["alembic", "downgrade", migrate_hash], capture_output=True, text=True)
+    print("Log:", result.stdout)
+    print("Errors:", result.stderr)
 
 
 @app.command()
-def createsuperuser(email: str = 'admin@example.com', password: str = 'admin'):
+def createsuperuser():
     """Creating super admin."""
+    email: str = os.getenv("ADMIN_EMAIL")
+    password: str = os.getenv("ADMIN_PASSWORD")
     loop = asyncio.get_event_loop()
     super_admin = loop.run_until_complete(create_user(email, password))
 

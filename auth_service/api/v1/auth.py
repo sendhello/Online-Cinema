@@ -18,7 +18,7 @@ from starlette import status
 router = APIRouter()
 
 
-@router.post('/signup', response_model=UserCreated, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=UserCreated, status_code=status.HTTP_201_CREATED)
 async def create_user(user_create: UserCreate) -> UserCreated:
     user_dto = jsonable_encoder(user_create)
     try:
@@ -27,13 +27,13 @@ async def create_user(user_create: UserCreate) -> UserCreated:
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail='User with such login is registered already',
+            detail="User with such login is registered already",
         )
 
     return raw_user
 
 
-@router.post('/login', response_model=Tokens)
+@router.post("/login", response_model=Tokens)
 async def login(
     user_login: UserLogin,
     user_agent: str = Header(default=None),
@@ -43,13 +43,13 @@ async def login(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect username or password',
+            detail="Incorrect username or password",
         )
 
     if not db_user.check_password(user_login.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect username or password',
+            detail="Incorrect username or password",
         )
 
     user_in_db = UserInDB.from_orm(db_user)
@@ -69,7 +69,7 @@ async def login(
     return tokens
 
 
-@router.post('/logout', dependencies=PROTECTED)
+@router.post("/logout", dependencies=PROTECTED)
 async def logout(
     user_agent: str = Header(default=None),
     authorize: AuthJWT = Depends(),
@@ -85,12 +85,12 @@ async def logout(
     user_claim = await authorize.get_raw_jwt()
     current_user = UserResponse.parse_obj(user_claim)
     user_agent_hash = md5(user_agent.encode()).hexdigest()
-    refresh_key = f'refresh.{current_user.id}.{user_agent_hash}'
+    refresh_key = f"refresh.{current_user.id}.{user_agent_hash}"
     await redis.delete(refresh_key)
     return {}
 
 
-@router.post('/refresh', dependencies=REFRESH_PROTECTED)
+@router.post("/refresh", dependencies=REFRESH_PROTECTED)
 async def refresh(
     user_agent: str = Header(default=None),
     authorize: AuthJWT = REFRESH_PROTECTED[0],
@@ -101,7 +101,5 @@ async def refresh(
 
     user_claims = await authorize.get_raw_jwt()
     current_user = UserResponse.parse_obj(user_claims)
-    tokens = await Tokens.create(
-        authorize=authorize, user=current_user, user_agent=user_agent
-    )
+    tokens = await Tokens.create(authorize=authorize, user=current_user, user_agent=user_agent)
     return tokens

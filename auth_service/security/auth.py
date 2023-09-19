@@ -25,9 +25,7 @@ async def full_protected(
 
     current_access_token = credentials.credentials
     if await is_rate_limit_exceeded(current_access_token):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests'
-        )
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests")
 
     access_key = await authorize.get_jwt_subject()
     blocked_access_tokens = await redis.smembers(access_key)
@@ -37,9 +35,7 @@ async def full_protected(
     if current_access_token not in blocked_access_tokens:
         return authorize
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
-    )
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
 
 
 async def partial_protected(
@@ -55,9 +51,7 @@ async def partial_protected(
 
     current_access_token = credentials.credentials
     if await is_rate_limit_exceeded(current_access_token):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail='Too many requests'
-        )
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests")
 
     access_key = await authorize.get_jwt_subject()
     if access_key is None:
@@ -70,9 +64,7 @@ async def partial_protected(
     if current_access_token not in blocked_access_tokens:
         return authorize
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
-    )
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
 
 
 async def refresh_protected(
@@ -93,7 +85,7 @@ async def refresh_protected(
 
     raise HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        detail='Signature has blocked',
+        detail="Signature has blocked",
     )
 
 
@@ -113,20 +105,14 @@ async def admin_protected(
     current_access_token = credentials.credentials
 
     if blocked_access_tokens and current_access_token in blocked_access_tokens:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail='Signature has blocked'
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature has blocked")
 
     user_claim = await authorize.get_raw_jwt()
     current_user = UserResponse.parse_obj(user_claim)
     if current_user.role is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
 
     if Rules.admin_rules not in current_user.rules:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
 
     return authorize

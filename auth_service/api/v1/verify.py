@@ -19,7 +19,7 @@ from starlette import status
 router = APIRouter()
 
 
-@router.get('/token', response_model=UserResponse, dependencies=PART_PROTECTED)
+@router.get("/token", response_model=UserResponse, dependencies=PART_PROTECTED)
 async def verify(
     service: Annotated[
         Service | None,
@@ -71,9 +71,7 @@ async def verify(
         )
     # Если запрос содержит неполный набор параметров - отдаем "Доступ запрещен"
     except ValidationError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
 
     # Проверка прав
     for rule in current_user.rules:
@@ -81,12 +79,10 @@ async def verify(
         if checked_entity in rule_model.rules:
             return UserResponse.parse_obj(current_user)
 
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN, detail='Permission denied'
-    )
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
 
 
-@router.post('/login', response_model=UserResponse)
+@router.post("/login", response_model=UserResponse)
 async def login(
     user_login: UserLogin,
     user_agent: str = Header(default=None),
@@ -95,13 +91,13 @@ async def login(
     if db_user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect username or password',
+            detail="Incorrect username or password",
         )
 
     if not db_user.check_password(user_login.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect username or password',
+            detail="Incorrect username or password",
         )
 
     db_history = History(

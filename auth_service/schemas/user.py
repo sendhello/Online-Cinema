@@ -44,10 +44,10 @@ class UserResponse(UserCreated):
 
     @root_validator(pre=True)
     def set_rules(cls, values: dict) -> dict:
-        role = values.get('role', {})
+        role = values.get("role", {})
         if isinstance(role, RoleInDB):
-            values['rules'] = role.rules
-            values['role'] = role.title
+            values["rules"] = role.rules
+            values["role"] = role.title
 
         return values
 

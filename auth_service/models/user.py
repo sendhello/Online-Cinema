@@ -10,17 +10,17 @@ from .mixins import CRUDMixin, IDMixin
 
 
 class User(Base, IDMixin, CRUDMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     login = Column(String(255), unique=True)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255))
     first_name = Column(String(50))
     last_name = Column(String(50))
-    role_id = Column(UUID, ForeignKey('roles.id'))
-    role = relationship('Role', back_populates='users')
-    socials = relationship('Social', back_populates='user', passive_deletes=True)
-    history = relationship('History', back_populates='user', passive_deletes=True)
+    role_id = Column(UUID, ForeignKey("roles.id"))
+    role = relationship("Role", back_populates="users")
+    socials = relationship("Social", back_populates="user", passive_deletes=True)
+    history = relationship("History", back_populates="user", passive_deletes=True)
 
     def __init__(
         self,
@@ -30,9 +30,7 @@ class User(Base, IDMixin, CRUDMixin):
         password: str = None,
     ) -> None:
         self.email = email
-        self.password = (
-            generate_password_hash(password) if password is not None else None
-        )
+        self.password = generate_password_hash(password) if password is not None else None
         self.first_name = first_name
         self.last_name = last_name
 
@@ -46,9 +44,7 @@ class User(Base, IDMixin, CRUDMixin):
     @classmethod
     async def get_by_login(cls, username: str) -> Self:
         async with async_session() as session:
-            request = (
-                select(cls).options(joinedload(cls.role)).where(cls.login == username)
-            )
+            request = select(cls).options(joinedload(cls.role)).where(cls.login == username)
             result = await session.execute(request)
             user = result.scalars().first()
 
@@ -57,9 +53,7 @@ class User(Base, IDMixin, CRUDMixin):
     @classmethod
     async def get_by_email(cls, email: str) -> Self:
         async with async_session() as session:
-            request = (
-                select(cls).options(joinedload(cls.role)).where(cls.email == email)
-            )
+            request = select(cls).options(joinedload(cls.role)).where(cls.email == email)
             result = await session.execute(request)
             user = result.scalars().first()
 
@@ -68,12 +62,7 @@ class User(Base, IDMixin, CRUDMixin):
     @classmethod
     async def get_all(cls, page: int = 1, page_size: int = 20) -> list[Self]:
         async with async_session() as session:
-            request = (
-                select(cls)
-                .options(joinedload(cls.role))
-                .limit(page_size)
-                .offset((page - 1) * page_size)
-            )
+            request = select(cls).options(joinedload(cls.role)).limit(page_size).offset((page - 1) * page_size)
             result = await session.execute(request)
             users = result.scalars().all()
 
@@ -89,16 +78,16 @@ class User(Base, IDMixin, CRUDMixin):
         return users
 
     def __repr__(self) -> str:
-        return f'<User {self.email}>'
+        return f"<User {self.email}>"
 
 
 class Social(Base, IDMixin, CRUDMixin):
-    __tablename__ = 'socials'
+    __tablename__ = "socials"
 
     social_id = Column(String(255), nullable=False, unique=True)
     type = Column(String(255), nullable=False)
-    user_id = Column(UUID, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    user = relationship('User', back_populates='socials')
+    user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user = relationship("User", back_populates="socials")
 
     @classmethod
     async def get_by_social_id(cls, social_id: str) -> Self:
