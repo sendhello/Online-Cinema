@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
 
-  admin_panel:
-    container_name: admin_panel
-    hostname: admin_panel
+  admin-panel:
+    container_name: admin-panel
+    hostname: admin-panel
     build: admin_panel
     expose:
       - "8000"
@@ -35,9 +35,9 @@ services:
       retries: 10
       start_period: 5s
 
-  admin_panel_swagger:
-    container_name: admin_panel_swagger
-    hostname: admin_panel_swagger
+  admin-panel-swagger:
+    container_name: admin-panel-swagger
+    hostname: admin-panel-swagger
     image: swaggerapi/swagger-ui
     environment:
       SWAGGER_JSON: ${SWAGGER_JSON}
@@ -50,7 +50,7 @@ services:
     networks:
       - network
     depends_on:
-      - admin_panel
+      - admin-panel
 
   sqlite_to_postgres:
     container_name: sqlite_to_postgres
@@ -67,7 +67,7 @@ services:
     volumes:
       - ./sqlite_to_postgres/db.sqlite:/opt/app/db.sqlite
     depends_on:
-      admin_panel:
+      admin-panel:
         condition: service_healthy
     networks:
       - network
@@ -146,13 +146,14 @@ services:
       - "8000"
     depends_on:
       - redis
-      - postgres
+      - auth-postgres
 
-  notification_api:
-    container_name: notification_api
-    hostname: notification_api
+  notification-api:
+    container_name: notification-api
+    hostname: notification-api
     build: notification_api
     environment:
+      DEBUG: ${DEBUG}
       BACKOFF_MAX_TIME: ${NOTIFICATIONS_TASK_BACKOFF_MAX_TIME}
       POSTGRES_HOST: ${NOTIFICATIONS_POSTGRES_HOST}
       POSTGRES_PORT: ${NOTIFICATIONS_POSTGRES_PORT}
@@ -174,16 +175,17 @@ services:
       - "8000"
     entrypoint: /opt/app/entrypoint.sh
     depends_on:
-      notification_postgres:
+      notification-postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
-  notification_generator:
-    container_name: notification_generator
-    hostname: notification_generator
+  notification-generator:
+    container_name: notification-generator
+    hostname: notification-generator
     build: notification_generator
     environment:
+      DEBUG: ${DEBUG}
       RABBITMQ_SEND_QUEUE_NAME: ${NOTIFICATION_GEN_RABBITMQ_SEND_QUEUE_NAME}
       NOTIFICATION_API_GATEWAY: ${NOTIFICATION_API_GATEWAY}
       AUTH_GATEWAY: ${AUTH_GATEWAY}
@@ -203,7 +205,33 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-      notification_api:
+      notification-api:
+        condition: service_started
+
+  email-sender:
+    container_name: email-sender
+    hostname: email-sender
+    build: email_sender
+    environment:
+      DEBUG: ${DEBUG}
+      RABBITMQ_SOURCE_QUEUE_NAME: ${EMAIL_SENDER_RABBITMQ_SOURCE_QUEUE_NAME}
+      RABBITMQ_SEND_QUEUE_NAME: ${EMAIL_SENDER_RABBITMQ_SEND_QUEUE_NAME}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+    networks:
+      - network
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      notification-api:
         condition: service_started
 
   postgres:
@@ -227,9 +255,9 @@ services:
       timeout: 5s
       retries: 5
 
-  auth_postgres:
-    container_name: auth_postgres
-    hostname: auth_postgres
+  auth-postgres:
+    container_name: auth-postgres
+    hostname: auth-postgres
     image: postgres:15.2
     networks:
       - network
@@ -247,9 +275,9 @@ services:
       timeout: 5s
       retries: 5
 
-  notification_postgres:
-    container_name: notification_postgres
-    hostname: notification_postgres
+  notification-postgres:
+    container_name: notification-postgres
+    hostname: notification-postgres
     image: postgres:15.2
     networks:
       - network
@@ -326,6 +354,15 @@ services:
     networks:
       - network
 
+  mailhog:
+    image: jcalonso/mailhog:latest
+    expose:
+      - "1025"
+    ports:
+      - "8025:8025"  # web ui
+    networks:
+      - network
+
   nginx:
     container_name: nginx
     hostname: nginx
@@ -336,9 +373,9 @@ services:
       - static_volume:/opt/app/static
     depends_on:
       - api
-      - admin_panel
+      - admin-panel
       - auth
-      - notification_api
+      - notification-api
     ports:
       - "80:80"
     networks:
