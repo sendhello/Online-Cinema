@@ -234,6 +234,44 @@ services:
       notification-api:
         condition: service_started
 
+  subscribe-service:
+    container_name: subscribe-service
+    hostname: subscribe-service
+    build: subscribe_service
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      DEBUG: ${DEBUG}
+      SHOW_TRACEBACK: ${SHOW_TRACEBACK}
+      POSTGRES_HOST: ${SUBSCRIBE_POSTGRES_HOST}
+      POSTGRES_PORT: ${SUBSCRIBE_POSTGRES_PORT}
+      POSTGRES_DATABASE: ${SUBSCRIBE_POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+      RABBITMQ_SOURCE_QUEUE_NAME: ${SUBSCRIBE_RABBITMQ_SOURCE_QUEUE_NAME}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID}
+      YOOKASSA_API_KEY: ${YOOKASSA_API_KEY}
+      YOOKASSA_RETURN_URL: ${YOOKASSA_RETURN_URL}
+    networks:
+      - network
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./subscribe_service:/opt/app
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      subscribe-postgres:
+        condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+
   postgres:
     container_name: postgres
     hostname: postgres
@@ -291,6 +329,26 @@ services:
       - notification_pgdata:/var/lib/postgresql/data/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U app -d notification" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  subscribe-postgres:
+    container_name: subscribe-postgres
+    hostname: subscribe-postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SUBSCRIBE_POSTGRES_DB}
+    volumes:
+      - subscribe_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d subscribe" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -385,6 +443,7 @@ volumes:
   admin_pgdata:
   auth_pgdata:
   notification_pgdata:
+  subscribe_pgdata:
   redis_data:
   elasticsearch_data:
   static_volume:

@@ -1,0 +1,42 @@
+@startuml
+skinparam componentStyle uml2
+
+rectangle NotificationService {
+    [NotificationAPI]
+    [NotificationGenerator]
+    [EmailSender]
+    database "notification_db" {
+    }
+    database "RabbitMQ" {
+        [emails]
+        [email_statuses]
+    }
+}
+
+rectangle BillingService {
+    [SubscribeService]
+    database "subscribe_db" {
+        [ SUBSCRIBES:\n user_id: uuid\n subscribe_type: str\n start_date: timestamp\n end_date:timestamp\n next_payment: timestamp\n auto_payment: bool]
+        [ PAYMENT:\n subscribe_id\n pay_date\n status\n ]
+    }
+    [SubscribeWorker]
+}
+
+[SubscribeService] .d.> [Auth] : Авторизация
+[SubscribeService] <.d.> [subscribe_db]
+[SubscribeService] .d.> [api] : Установка\n роли подписчика
+[SubscribeService] .d.> [NotificationAPI] : Уведомления о подписке
+[SubscribeService] <.d. [SubscribeWorker] : Проверка статусов подписок (период)
+[SubscribeService] <.d. [SubscribeWorker] : Автосписание
+[SubscribeWorker] .d.> [api] : Деактивация роли подписчика
+[SubscribeWorker] .d.> [NotificationAPI] : Уведомления об окончании подписки
+
+[NotificationAPI] <.d.> [notification_db]
+[NotificationGenerator] .d.> [Auth] : Получение\nданных юзеров
+[NotificationGenerator] .d.> [NotificationAPI] : Получение\nнотификаций
+[NotificationGenerator] .d.> [emails] : Готовые\nписьма
+[EmailSender] <.d. [emails]
+[EmailSender] .d.> [email_statuses]: статус\nотправки
+[EmailSender] .d.> [SMTP Server]: Письма
+
+@enduml
