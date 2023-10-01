@@ -26,7 +26,7 @@ class PaymentStatus(StrEnum):
     """Статус платежа."""
 
     CREATE = auto()
-    PAYMENT = auto()
+    PENDING = auto()
     ERROR = auto()
 
 

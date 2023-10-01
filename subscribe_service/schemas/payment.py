@@ -28,6 +28,7 @@ class PaymentDBCreateScheme(Model):
 class PaymentDBScheme(PaymentDBCreateScheme):
     id: UUID
     subscribe_id: UUID | None
+    remote_id: UUID | None
 
     class Config:
         orm_mode = True
@@ -38,8 +39,13 @@ class PaymentUpdateScheme(Model):
     subscribe_id: UUID | None
 
 
+class PaymentDBUpdateScheme(PaymentUpdateScheme):
+    remote_id: UUID | None
+
+
 class PaymentFindScheme(Model):
     user_id: UUID | None
+    remote_id: UUID | None
     subscribe_id: UUID | None
     payment_type: PaymentType | None
     payment_date: date | None

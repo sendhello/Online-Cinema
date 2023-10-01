@@ -8,6 +8,7 @@ from constants import SubscribeType, PRICE_MAP
 from schemas.subscribe import SubscribeUpdateScheme, SubscribeFindScheme, SubscribeCreateScheme, SubscribeDBScheme
 from services.subscribe import SubscribeService, get_subscribe_service
 from services.payment import PaymentService, get_payment_service
+from schemas.payment import PaymentDBUpdateScheme
 from api.v1.deps import PaginateQueryParams
 from schemas.user import User
 from fastapi.responses import RedirectResponse
@@ -34,7 +35,16 @@ async def create_subscribe(
         user_id=user.id,
         payment_type=subscribe_create.payment_type,
     )
-    pay_url = send_payment(payment=payment)
+    payment_response = send_payment(payment=payment)
+    await payment_service.update(
+        id=payment.id,
+        payment_fields=PaymentDBUpdateScheme(
+            remote_id=payment_response.id,
+            status=payment_response.status,
+        ),
+    )
+
+    pay_url = payment_response.confirmation.confirmation_url
     logging.debug(f"Redirect to: {pay_url}")
     return RedirectResponse(url=pay_url)
 

@@ -15,7 +15,7 @@ from schemas.payment import (
     PaymentFindScheme,
     PaymentCreateScheme,
     PaymentDBCreateScheme,
-    PaymentUpdateScheme,
+    PaymentDBUpdateScheme,
 )
 from constants import PaymentType, PaymentStatus
 
@@ -56,7 +56,8 @@ class PaymentService:
     async def find(self, payment_filter: PaymentFindScheme, page: int, page_size: int) -> list[PaymentDBScheme]:
         db_payments = await self.payment.read_optional(
             equal_fields=payment_filter.dict(
-                include={'user_id', 'subscribe_id', 'payment_type', 'status', 'currency', 'amount'}, exclude_none=True
+                include={'user_id', 'subscribe_id', 'payment_type', 'status', 'currency', 'amount', 'remote_id'},
+                exclude_none=True,
             ),
             gte_fields={'payment_date': datetime.combine(payment_filter.payment_date, datetime.min.time())}
             if payment_filter.payment_date is not None
@@ -70,7 +71,7 @@ class PaymentService:
         logger.debug(f"Found payments: {', '.join([str(db_payment.id) for db_payment in db_payments])}")
         return [PaymentDBScheme.from_orm(db_payment) for db_payment in db_payments]
 
-    async def update(self, id: UUID, payment_fields: PaymentUpdateScheme) -> PaymentDBScheme | None:
+    async def update(self, id: UUID, payment_fields: PaymentDBUpdateScheme) -> PaymentDBScheme | None:
         old_payment = await self.get(id)
         db_payment = await self.payment.update(old_payment, payment_fields)
         logger.debug("Payment {} was updated".format(id))

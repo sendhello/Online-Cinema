@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 5b93a01ea67b
+Revision ID: 2e5c6c95a606
 Revises: 
-Create Date: 2023-10-01 16:10:15.651039
+Create Date: 2023-10-01 17:43:02.429810
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5b93a01ea67b'
+revision = '2e5c6c95a606'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -35,11 +35,12 @@ def upgrade() -> None:
     op.create_table('payment',
     sa.Column('payment_type', sa.Enum('YOOKASSA', 'SBER_PAY', name='paymenttype'), nullable=True),
     sa.Column('payment_date', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('status', sa.Enum('CREATE', 'PAYMENT', 'ERROR', name='paymentstatus'), nullable=True),
+    sa.Column('status', sa.Enum('CREATE', 'PENDING', 'ERROR', name='paymentstatus'), nullable=True),
     sa.Column('user_id', sa.UUID(), nullable=False),
     sa.Column('subscribe_id', sa.UUID(), nullable=True),
     sa.Column('amount', sa.DECIMAL(precision=10, scale=2), nullable=False),
     sa.Column('currency', sa.Enum('RUB', 'USD', name='currency'), nullable=True),
+    sa.Column('remote_id', sa.UUID(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),

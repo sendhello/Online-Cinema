@@ -16,5 +16,6 @@ class Payment(Base, BaseDBModel):
     subscribe_id = Column(UUID(as_uuid=True), ForeignKey("subscribe.id", ondelete="SET NULL"))
     amount = Column(DECIMAL(precision=10, scale=2), nullable=False)
     currency = Column(Enum(Currency), default=Currency.RUB)
+    remote_id = Column(UUID(as_uuid=True))
 
     subscribe = relationship("Subscribe", back_populates="payments")
