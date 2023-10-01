@@ -1,9 +1,9 @@
+from enum import Enum
 from uuid import UUID
 
 from pydantic import EmailStr
 
 from .base import Model
-from enum import Enum
 
 
 class Rules(str, Enum):

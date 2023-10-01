@@ -1,23 +1,20 @@
+import logging
+from datetime import datetime
 from functools import lru_cache
 from uuid import UUID
-from datetime import datetime
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.subscribe import SubscribeDBScheme
-import logging
-from constants import SubscribeType, PRICE_MAP
-from typing import Sequence
+
+from constants import PRICE_MAP, PaymentType, SubscribeType
 from db.postgres import get_session
-from models.payment import Payment
 from repository.payment import PaymentRepository
 from schemas.payment import (
-    PaymentDBScheme,
-    PaymentFindScheme,
-    PaymentCreateScheme,
     PaymentDBCreateScheme,
+    PaymentDBScheme,
     PaymentDBUpdateScheme,
+    PaymentFindScheme,
 )
-from constants import PaymentType, PaymentStatus
 
 
 logger = logging.getLogger(__name__)
@@ -56,13 +53,13 @@ class PaymentService:
     async def find(self, payment_filter: PaymentFindScheme, page: int, page_size: int) -> list[PaymentDBScheme]:
         db_payments = await self.payment.read_optional(
             equal_fields=payment_filter.dict(
-                include={'user_id', 'subscribe_id', 'payment_type', 'status', 'currency', 'amount', 'remote_id'},
+                include={"user_id", "subscribe_id", "payment_type", "status", "currency", "amount", "remote_id"},
                 exclude_none=True,
             ),
-            gte_fields={'payment_date': datetime.combine(payment_filter.payment_date, datetime.min.time())}
+            gte_fields={"payment_date": datetime.combine(payment_filter.payment_date, datetime.min.time())}
             if payment_filter.payment_date is not None
             else None,
-            lt_fields={'payment_date': datetime.combine(payment_filter.payment_date, datetime.max.time())}
+            lt_fields={"payment_date": datetime.combine(payment_filter.payment_date, datetime.max.time())}
             if payment_filter.payment_date is not None
             else None,
             page=page,

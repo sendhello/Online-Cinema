@@ -1,13 +1,15 @@
+from functools import partial
+from logging import getLogger
+
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from httpx import ConnectError, ConnectTimeout, HTTPStatusError
+
 from api.v1.api import router
-from core.settings import settings
-from middleware.exceptions import exception_traceback_middleware
-from handlers.api import connection_timeout_handler, http_status_handler, default_handler
-from logging import getLogger
-from functools import partial
 from core.sentry import connect_sentry
+from core.settings import settings
+from handlers.api import connection_timeout_handler, default_handler, http_status_handler
+from middleware.exceptions import exception_traceback_middleware
 
 
 logger = getLogger(__name__)

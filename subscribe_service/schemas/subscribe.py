@@ -1,9 +1,9 @@
-from datetime import datetime, date
+from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import Field, validator
+from pydantic import validator
 
-from constants import SubscribeType, PaymentType
+from constants import PaymentType, SubscribeType
 
 from .base import Model
 

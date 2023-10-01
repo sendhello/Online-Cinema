@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends
 from fastapi.requests import Request
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.sql import text
-from api.v1.endpoints.subscribe import router as subscribe_router
+
 from api.v1.endpoints.payment import router as payment_router
+from api.v1.endpoints.subscribe import router as subscribe_router
 from core.settings import settings
 from db.postgres import create_async_session
-from security import security_jwt
 from schemas.user import User
+from security import security_jwt
+
 
 router = APIRouter()
 

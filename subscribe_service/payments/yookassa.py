@@ -1,10 +1,12 @@
-from yookassa import Configuration, Payment as PaymentCreator
+from uuid import uuid4
+
+from yookassa import Configuration
+from yookassa import Payment as PaymentCreator
 from yookassa.domain.response import PaymentResponse
 
 from core.settings import settings
-from schemas.yookassa import YookassaPayment, Amount, Confirmation
 from payments.base import BasePayment
-from uuid import UUID, uuid4
+from schemas.yookassa import Amount, Confirmation, YookassaPayment
 
 
 Configuration.account_id = settings.yookassa_shop_id

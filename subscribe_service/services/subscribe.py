@@ -1,25 +1,23 @@
+import logging
+from datetime import datetime
 from functools import lru_cache
 from uuid import UUID
 
+from dateutil.relativedelta import relativedelta
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import logging
+from constants import SubscribeType
 from db.postgres import get_session
-from models.subscribe import Subscribe
+from repository.payment import PaymentRepository
 from repository.subscribe import SubscribeRepository
 from schemas.subscribe import (
+    SubscribeCreateScheme,
     SubscribeDBCreateScheme,
     SubscribeDBScheme,
-    SubscribeUpdateScheme,
     SubscribeFindScheme,
-    SubscribeCreateScheme,
+    SubscribeUpdateScheme,
 )
-from schemas.payment import PaymentCreateScheme, PaymentDBScheme
-from constants import SubscribeType
-from repository.payment import PaymentRepository
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 
 
 logger = logging.getLogger(__name__)
@@ -73,11 +71,11 @@ class SubscribeService:
     async def find(self, subscribe_filter: SubscribeFindScheme, page: int, page_size: int) -> list[SubscribeDBScheme]:
         result = await self.subscribe.read_optional(
             equal_fields=subscribe_filter.dict(
-                include={'user_id', 'subscribe_type', 'auto_payment', 'is_active'}, exclude_none=True
+                include={"user_id", "subscribe_type", "auto_payment", "is_active"}, exclude_none=True
             ),
-            gte_fields=subscribe_filter.dict(include={'start_date'}, exclude_none=True),
-            lt_fields=subscribe_filter.dict(include={'end_date'}, exclude_none=True),
-            lte_fields=subscribe_filter.dict(include={'next_payment'}, exclude_none=True),
+            gte_fields=subscribe_filter.dict(include={"start_date"}, exclude_none=True),
+            lt_fields=subscribe_filter.dict(include={"end_date"}, exclude_none=True),
+            lte_fields=subscribe_filter.dict(include={"next_payment"}, exclude_none=True),
             page=page,
             page_size=page_size,
         )

@@ -1,5 +1,4 @@
 from schemas.base import Model
-from uuid import UUID
 
 
 class Amount(Model):

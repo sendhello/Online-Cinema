@@ -1,7 +1,9 @@
 import os
 from logging.config import dictConfig as logger_config
-from core.logger import LOGGING
+
 from pydantic import AnyUrl, BaseSettings, HttpUrl
+
+from core.logger import LOGGING
 
 
 logger_config(LOGGING)

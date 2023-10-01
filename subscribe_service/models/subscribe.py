@@ -1,8 +1,9 @@
-from sqlalchemy import Column, DateTime, Enum, Boolean
+from sqlalchemy import Boolean, Column, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from constants import SubscribeType
+
 from .base import Base, BaseDBModel
 
 

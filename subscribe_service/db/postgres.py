@@ -5,12 +5,13 @@ from logging import Logger
 from typing import AsyncGenerator
 
 from fastapi import Depends
+from sqlalchemy import MetaData
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import MetaData
 
 from core.settings import settings
+
 
 Base = declarative_base(metadata=MetaData())
 

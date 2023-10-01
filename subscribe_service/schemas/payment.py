@@ -1,11 +1,8 @@
-from datetime import datetime, date
+from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
 
-from pydantic import Field, validator
-from decimal import Decimal
-
-from constants import PaymentStatus, PaymentType, Currency
-
+from constants import Currency, PaymentStatus, PaymentType
 
 from .base import Model
 

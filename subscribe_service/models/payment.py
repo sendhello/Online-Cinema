@@ -1,8 +1,9 @@
-from sqlalchemy import Column, DateTime, Enum, Boolean, ForeignKey, DECIMAL, String
+from sqlalchemy import DECIMAL, Column, DateTime, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from constants import PaymentType, PaymentStatus, Currency
+from constants import Currency, PaymentStatus, PaymentType
+
 from .base import Base, BaseDBModel
 
 
