@@ -13,6 +13,7 @@ from schemas.payment import (
     PaymentDBCreateScheme,
     PaymentDBScheme,
     PaymentDBUpdateScheme,
+    PaymentUpdateScheme,
     PaymentFindScheme,
 )
 
@@ -68,7 +69,7 @@ class PaymentService:
         logger.debug(f"Found payments: {', '.join([str(db_payment.id) for db_payment in db_payments])}")
         return [PaymentDBScheme.from_orm(db_payment) for db_payment in db_payments]
 
-    async def update(self, id: UUID, payment_fields: PaymentDBUpdateScheme) -> PaymentDBScheme | None:
+    async def update(self, id: UUID, payment_fields: PaymentUpdateScheme) -> PaymentDBScheme | None:
         old_payment = await self.get(id)
         db_payment = await self.payment.update(old_payment, payment_fields)
         logger.debug("Payment {} was updated".format(id))

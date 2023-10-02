@@ -41,7 +41,6 @@ class SubscribeService:
     async def create(
         self,
         subscribe_data: SubscribeCreateScheme,
-        user_id: UUID,
     ) -> SubscribeDBScheme:
         """Создание подписки."""
 
@@ -50,7 +49,7 @@ class SubscribeService:
         new_subscribe = SubscribeDBCreateScheme(
             subscribe_type=subscribe_data.subscribe_type,
             auto_payment=subscribe_data.auto_payment,
-            user_id=user_id,
+            user_id=subscribe_data.user_id,
             start_date=today,
             end_date=end_date,
             next_payment=end_date,

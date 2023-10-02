@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import RedirectResponse
+from fastapi.exceptions import HTTPException
 
 from api.v1.deps import PaginateQueryParams
 from constants import SubscribeType
@@ -13,8 +14,10 @@ from schemas.payment import PaymentDBUpdateScheme
 from schemas.subscribe import SubscribeCreateScheme, SubscribeDBScheme, SubscribeFindScheme, SubscribeUpdateScheme
 from schemas.user import User
 from security import security_jwt
+from schemas.user import Rules
 from services.payment import PaymentService, get_payment_service
 from services.subscribe import SubscribeService, get_subscribe_service
+from starlette import status
 
 
 router = APIRouter()
@@ -29,11 +32,14 @@ async def create_subscribe(
 ) -> RedirectResponse:
     """Создание подписки."""
 
-    subscribe = await subscribe_service.create(subscribe_create, user.id)
+    if Rules.admin_rules not in user.rules:
+        subscribe_create.user_id = user.id
+
+    subscribe = await subscribe_service.create(subscribe_create)
     payment = await payment_service.create(
         subscribe_id=subscribe.id,
         subscribe_type=subscribe.subscribe_type,
-        user_id=user.id,
+        user_id=subscribe_create.user_id,
         payment_type=subscribe_create.payment_type,
     )
     payment_response = send_payment(payment=payment)
@@ -54,16 +60,21 @@ async def create_subscribe(
 async def get_subscribe_by_id(
     id: UUID,
     subscribe_service: Annotated[SubscribeService, Depends(get_subscribe_service)],
-    user: Annotated[dict | None, Depends(security_jwt)],
-) -> SubscribeDBScheme:
-    return await subscribe_service.get(id)
+    user: Annotated[User | None, Depends(security_jwt)],
+) -> SubscribeDBScheme | None:
+    """Получение подписки по ее ID."""
 
+    subscribe = await subscribe_service.get(id)
+    if subscribe.user_id == user.id or Rules.admin_rules in user.rules:
+        return subscribe
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 @router.get("/", response_model=list[SubscribeDBScheme])
 async def get_subscribes(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
     subscribe_service: Annotated[SubscribeService, Depends(get_subscribe_service)],
-    user: Annotated[dict | None, Depends(security_jwt)],
+    user: Annotated[User | None, Depends(security_jwt)],
     user_id: Annotated[UUID | None, Query(description="ID пользователя")] = None,
     type: Annotated[SubscribeType | None, Query(description="Тип подписки")] = None,
     start_date: Annotated[datetime | date | None, Query(description="Дата начала подписки")] = None,
@@ -73,6 +84,9 @@ async def get_subscribes(
     is_active: Annotated[bool | None, Query(description="Подписка активна")] = None,
 ) -> list[SubscribeDBScheme]:
     """Получение отфильтрованного списка подписок."""
+
+    if Rules.admin_rules not in user.rules:
+        user_id = user.id
 
     res = await subscribe_service.find(
         subscribe_filter=SubscribeFindScheme(
@@ -96,11 +110,17 @@ async def get_subscribes(
 )
 async def update_subscribe(
     id: UUID,
-    subscribe: SubscribeUpdateScheme,
+    subscribe_update: SubscribeUpdateScheme,
     subscribe_service: Annotated[SubscribeService, Depends(get_subscribe_service)],
-    user: Annotated[dict | None, Depends(security_jwt)],
+    user: Annotated[User | None, Depends(security_jwt)],
 ) -> SubscribeDBScheme | None:
-    return await subscribe_service.update(id, subscribe)
+    """Изменение подписки."""
+
+    subscribe = await subscribe_service.get(id)
+    if subscribe.user_id == user.id or Rules.admin_rules in user.rules:
+        return await subscribe_service.update(id, subscribe_update)
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
 @router.delete(
@@ -110,6 +130,12 @@ async def update_subscribe(
 async def delete_subscribe(
     id: UUID,
     subscribe_service: Annotated[SubscribeService, Depends(get_subscribe_service)],
-    user: Annotated[dict | None, Depends(security_jwt)],
+    user: Annotated[User | None, Depends(security_jwt)],
 ) -> SubscribeDBScheme | None:
-    return await subscribe_service.delete(id)
+    """Удаление подписки."""
+
+    subscribe = await subscribe_service.get(id)
+    if subscribe.user_id == user.id or Rules.admin_rules in user.rules:
+        return await subscribe_service.delete(id)
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)

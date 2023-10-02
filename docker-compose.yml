@@ -261,16 +261,12 @@ services:
       YOOKASSA_RETURN_URL: ${YOOKASSA_RETURN_URL}
     networks:
       - network
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./subscribe_service:/opt/app
+    expose:
+      - "8000"
     entrypoint: /opt/app/entrypoint.sh
     depends_on:
       subscribe-postgres:
         condition: service_healthy
-#      rabbitmq:
-#        condition: service_healthy
 
   postgres:
     container_name: postgres

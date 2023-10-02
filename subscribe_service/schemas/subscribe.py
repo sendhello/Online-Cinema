@@ -9,6 +9,7 @@ from .base import Model
 
 
 class SubscribeCreateScheme(Model):
+    user_id: UUID | None
     subscribe_type: SubscribeType
     payment_type: PaymentType
     auto_payment: bool = True
