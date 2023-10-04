@@ -268,6 +268,27 @@ services:
       subscribe-postgres:
         condition: service_healthy
 
+  subscribe-controller:
+    container_name: subscribe-controller
+    hostname: subscribe-controller
+    build: subscribe_controller
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      DEBUG: ${DEBUG}
+      REQUEST_PERIOD: ${REQUEST_PERIOD}
+      SUBSCRIBE_SERVICE_GATEWAY: ${SUBSCRIBE_SERVICE_GATEWAY}
+      NOTIFICATION_API_GATEWAY: ${NOTIFICATION_API_GATEWAY}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SUBSCRIBE_ROLE_ID: ${SUBSCRIBE_ROLE_ID}
+    networks:
+      - network
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      subscribe-service:
+        condition: service_started
+
   postgres:
     container_name: postgres
     hostname: postgres
