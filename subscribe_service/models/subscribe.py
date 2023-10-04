@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from constants import SubscribeType
+from constants import SubscribeStatus, SubscribeType
 
 from .base import Base, BaseDBModel
 
@@ -16,6 +16,6 @@ class Subscribe(Base, BaseDBModel):
     end_date = Column(DateTime(timezone=True))
     next_payment = Column(DateTime(timezone=True))
     auto_payment = Column(Boolean)
-    is_active = Column(Boolean)
+    status = Column(Enum(SubscribeStatus))
 
     payments = relationship("Payment", back_populates="subscribe")

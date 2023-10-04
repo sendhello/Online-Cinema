@@ -12,10 +12,10 @@ from repository.payment import PaymentRepository
 from schemas.payment import (
     PaymentDBCreateScheme,
     PaymentDBScheme,
-    PaymentDBUpdateScheme,
-    PaymentUpdateScheme,
     PaymentFindScheme,
+    PaymentUpdateScheme,
 )
+from services.yookassa import YookassaService
 
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,20 @@ class PaymentService:
             return None
 
         return PaymentDBScheme.from_orm(db_payment)
+
+    @staticmethod
+    def choose_payment_method(payment: PaymentDBScheme) -> YookassaService:
+        """Выбор метода оплаты."""
+
+        match payment.payment_type:
+            case PaymentType.YOOKASSA:
+                return YookassaService(payment)
+
+            case PaymentType.SBER_PAY:
+                raise RuntimeError(f"Payment {payment.payment_type}  don't support now")
+
+            case _:
+                raise RuntimeError(f"Payment {payment.payment_type} don't support now")
 
 
 @lru_cache

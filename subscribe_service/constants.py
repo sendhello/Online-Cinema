@@ -15,6 +15,15 @@ class SubscribeType(StrEnum):
     YEARLY = auto()
 
 
+class SubscribeStatus(StrEnum):
+    """Статус подписки."""
+
+    PENDING = auto()
+    CANCELED = auto()
+    ACTIVE = auto()
+    BLOCKED = auto()
+
+
 class PaymentType(StrEnum):
     """Тип платежа."""
 
@@ -27,6 +36,9 @@ class PaymentStatus(StrEnum):
 
     CREATE = auto()
     PENDING = auto()
+    WAITING_FOR_CAPTURE = auto()
+    SUCCEEDED = auto()
+    CANCELED = auto()
     ERROR = auto()
 
 

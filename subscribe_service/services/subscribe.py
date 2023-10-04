@@ -70,7 +70,7 @@ class SubscribeService:
     async def find(self, subscribe_filter: SubscribeFindScheme, page: int, page_size: int) -> list[SubscribeDBScheme]:
         result = await self.subscribe.read_optional(
             equal_fields=subscribe_filter.dict(
-                include={"user_id", "subscribe_type", "auto_payment", "is_active"}, exclude_none=True
+                include={"user_id", "subscribe_type", "auto_payment", "status"}, exclude_none=True
             ),
             gte_fields=subscribe_filter.dict(include={"start_date"}, exclude_none=True),
             lt_fields=subscribe_filter.dict(include={"end_date"}, exclude_none=True),

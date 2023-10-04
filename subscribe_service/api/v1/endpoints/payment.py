@@ -1,19 +1,25 @@
+import logging
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.exceptions import HTTPException
+from fastapi.responses import RedirectResponse
+from starlette import status
 
 from api.v1.deps import PaginateQueryParams
 from constants import PaymentStatus, PaymentType
-from schemas.payment import PaymentCreateScheme, PaymentDBScheme, PaymentFindScheme, PaymentUpdateScheme
-from schemas.user import User
+from schemas.payment import (
+    PaymentCreateScheme,
+    PaymentDBScheme,
+    PaymentDBUpdateScheme,
+    PaymentFindScheme,
+    PaymentUpdateScheme,
+)
+from schemas.user import Rules, User
 from security import security_jwt
-from schemas.user import User
 from services.payment import PaymentService, get_payment_service
-from fastapi.exceptions import HTTPException
-from starlette import status
-from schemas.user import Rules
 
 
 router = APIRouter()
@@ -24,16 +30,29 @@ async def create_payment(
     payment_create: PaymentCreateScheme,
     payment_service: Annotated[PaymentService, Depends(get_payment_service)],
     user: Annotated[User | None, Depends(security_jwt)],
-) -> PaymentDBScheme | None:
+) -> RedirectResponse | None:
     """Создание оплаты."""
 
     if Rules.admin_rules not in user.rules:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    return await payment_service.create(
+    payment = await payment_service.create(
         **payment_create.dict(),
         user_id=user.id,
     )
+    payment_method = payment_service.choose_payment_method(payment)
+    payment_response = payment_method.send_payment()
+    await payment_service.update(
+        id=payment.id,
+        payment_fields=PaymentDBUpdateScheme(
+            remote_id=payment_response.id,
+            status=payment_response.status,
+        ),
+    )
+
+    pay_url = payment_response.confirmation.confirmation_url
+    logging.debug(f"Redirect to: {pay_url}")
+    return RedirectResponse(url=pay_url)
 
 
 @router.get("/{id}", response_model=PaymentDBScheme)
@@ -49,6 +68,30 @@ async def get_payment_by_id(
         return payment
 
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+
+@router.post("/{id}/update", response_model=PaymentDBScheme)
+async def update_payment_status(
+    id: UUID,
+    payment_service: Annotated[PaymentService, Depends(get_payment_service)],
+    user: Annotated[User | None, Depends(security_jwt)],
+) -> PaymentDBScheme:
+    """Обновление платежа из агрегатора платежей."""
+
+    payment = await payment_service.get(id)
+    if payment.user_id != user.id and Rules.admin_rules not in user.rules:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    payment_method = payment_service.choose_payment_method(payment)
+    payment_response = payment_method.get_payment_status()
+    payment = await payment_service.update(
+        id=payment.id,
+        payment_fields=PaymentDBUpdateScheme(
+            remote_id=payment_response.id,
+            status=payment_response.status,
+        ),
+    )
+    return payment
 
 
 @router.get("/", response_model=list[PaymentDBScheme])

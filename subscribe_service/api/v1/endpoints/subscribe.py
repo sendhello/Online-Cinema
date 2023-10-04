@@ -4,20 +4,18 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
+from fastapi.responses import RedirectResponse
+from starlette import status
 
 from api.v1.deps import PaginateQueryParams
-from constants import SubscribeType
-from payments.handlers import send_payment
+from constants import SubscribeStatus, SubscribeType
 from schemas.payment import PaymentDBUpdateScheme
 from schemas.subscribe import SubscribeCreateScheme, SubscribeDBScheme, SubscribeFindScheme, SubscribeUpdateScheme
-from schemas.user import User
+from schemas.user import Rules, User
 from security import security_jwt
-from schemas.user import Rules
 from services.payment import PaymentService, get_payment_service
 from services.subscribe import SubscribeService, get_subscribe_service
-from starlette import status
 
 
 router = APIRouter()
@@ -42,7 +40,8 @@ async def create_subscribe(
         user_id=subscribe_create.user_id,
         payment_type=subscribe_create.payment_type,
     )
-    payment_response = send_payment(payment=payment)
+    payment_method = payment_service.choose_payment_method(payment)
+    payment_response = payment_method.send_payment()
     await payment_service.update(
         id=payment.id,
         payment_fields=PaymentDBUpdateScheme(
@@ -70,6 +69,7 @@ async def get_subscribe_by_id(
 
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
+
 @router.get("/", response_model=list[SubscribeDBScheme])
 async def get_subscribes(
     paginate: Annotated[PaginateQueryParams, Depends(PaginateQueryParams)],
@@ -81,7 +81,7 @@ async def get_subscribes(
     end_date: Annotated[datetime | date | None, Query(description="Дата окончания подписки")] = None,
     next_payment: Annotated[date | None, Query(description="Дата следующего платежа")] = None,
     auto_payment: Annotated[bool | None, Query(description="Автоплатеж")] = None,
-    is_active: Annotated[bool | None, Query(description="Подписка активна")] = None,
+    status: Annotated[SubscribeStatus | None, Query(description="Статус подписки")] = None,
 ) -> list[SubscribeDBScheme]:
     """Получение отфильтрованного списка подписок."""
 
@@ -96,7 +96,7 @@ async def get_subscribes(
             end_date=end_date,
             next_payment=next_payment,
             auto_payment=auto_payment,
-            is_active=is_active,
+            status=status,
         ),
         page=paginate.page,
         page_size=paginate.page_size,

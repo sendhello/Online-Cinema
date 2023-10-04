@@ -1,17 +1,17 @@
 """init
 
-Revision ID: 2e5c6c95a606
+Revision ID: f6c9d7021a95
 Revises:
-Create Date: 2023-10-01 17:43:02.429810
-"""
+Create Date: 2023-10-04 15:10:55.307308
 
+"""
 import sqlalchemy as sa
 
 from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision = "2e5c6c95a606"
+revision = "f6c9d7021a95"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("end_date", sa.DateTime(timezone=True), nullable=True),
         sa.Column("next_payment", sa.DateTime(timezone=True), nullable=True),
         sa.Column("auto_payment", sa.Boolean(), nullable=True),
-        sa.Column("is_active", sa.Boolean(), nullable=True),
+        sa.Column("status", sa.Enum("PENDING", "CANCELED", "ACTIVE", "BLOCKED", name="subscribestatus"), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
@@ -38,7 +38,11 @@ def upgrade() -> None:
         "payment",
         sa.Column("payment_type", sa.Enum("YOOKASSA", "SBER_PAY", name="paymenttype"), nullable=True),
         sa.Column("payment_date", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("status", sa.Enum("CREATE", "PENDING", "ERROR", name="paymentstatus"), nullable=True),
+        sa.Column(
+            "status",
+            sa.Enum("CREATE", "PENDING", "WAITING_FOR_CAPTURE", "SUCCEEDED", "CANCELED", "ERROR", name="paymentstatus"),
+            nullable=True,
+        ),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("subscribe_id", sa.UUID(), nullable=True),
         sa.Column("amount", sa.DECIMAL(precision=10, scale=2), nullable=False),
