@@ -10,6 +10,7 @@
 * [Notification API](notification_api/README.md)
 * [Notification Generator](notification_generator/README.md)
 * [Subscribe Service](subscribe_service/README.md)
+* [Subscribe Controller](subscribe_controller/README.md)
 
 ### Поддержка проекта
 

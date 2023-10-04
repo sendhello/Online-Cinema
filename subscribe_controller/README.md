@@ -30,25 +30,20 @@ docker compose up --build
 Установка зависимостей requirements-dev.txt из корня проекта
 
 ```commandline
-isort notification_generator
-flake8 notification_generator
-black --line-length 120 notification_generator
+isort subscribe_controller
+flake8 subscribe_controller
+black --line-length 120 subscribe_controller
 ```
 
 ### Описание ENV переменных
 
-| Имя переменной                            | Возможное значение | Описание                                                 |
-|:------------------------------------------|--------------------|:---------------------------------------------------------|
-| NOTIFICATION_API_GATEWAY                  | localhost          | Путь к сервису Notification API                          |
-| REQUEST_PERIOD                            | 30                 | Период опроса сервиса Notification API                   |
-| AUTH_GATEWAY                              | localhost          | Путь к сервису Auth                                      |
-| ADMIN_EMAIL                               | email_status       | Логин администратора сервиса Auth                        |
-| ADMIN_PASSWORD                            | localhost          | Пароль администратора сервиса Auth                       |
-| NOTIFICATION_GEN_RABBITMQ_SEND_QUEUE_NAME | email_status       | Имя очереди для отправки сообщений                       |
-| RABBITMQ_HOST                             | rabbitmq           | Имя сервера RabbitMQ                                     |
-| RABBITMQ_PORT                             | 5672               | Порт сервера RabbitMQ                                    |
-| RABBITMQ_USER                             | ruser              | Имя пользователя RabbitMQ                                |
-| RABBITMQ_PASS                             | rpassword          | Пароль пользователя RabbitMQ                             |
-| RABBITMQ_VHOST                            |                    | Имя V-хоста RabbitMQ                                     |
-| RABBITMQ_EXCHANGE_TYPE                    | topic              | Имя обменника RabbitMQ                                   |
-| RABBITMQ_PREFETCH_COUNT                   | 1                  | Количество сообщений получаемых консьюмером одновреммено |
+| Имя переменной            | Возможное значение                   | Описание                           |
+|:--------------------------|--------------------------------------|:-----------------------------------|
+| ENVIRONMENT               | dev                                  | Имя окружения                      |
+| DEBUG                     | true                                 | Режим отладки                      |
+| SUBSCRIBE_SERVICE_GATEWAY | localhost                            | Путь к сервису Subscribe Service   |
+| NOTIFICATION_API_GATEWAY  | localhost                            | Путь к сервису Notification API    |
+| AUTH_GATEWAY              | localhost                            | Путь к сервису Auth                |
+| ADMIN_EMAIL               | admin@example.com                    | Логин администратора сервиса Auth  |
+| ADMIN_PASSWORD            | ***                                  | Пароль администратора сервиса Auth |
+| SUBSCRIBE_ROLE_ID         | 482ebcaf-47ec-4ba2-a47b-8e930867d56f | ID роли подписчика в Auth          |
