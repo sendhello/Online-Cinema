@@ -33,7 +33,7 @@ class SubscribeServiceGateway(BaseAsyncGateway):
         logger.debug("Try get subscribe payments...")
         response = await self._client.get(
             "/api/v1/payments/",
-            params={"subscribe_id": subscribe_id, "page_size": 500},
+            params={"subscribe_id": str(subscribe_id), "page_size": 500},
             headers={"Authorization": f"Bearer {access_token}"},
         )
         logger.debug(f"Subscribe payments got with status {response.status_code}...")

@@ -10,8 +10,6 @@ class NotificationScheme(Model):
     """Модель сообщения."""
 
     id: UUID
-    task_id: UUID
-    user_id: UUID
     status: NotificationStatus
     created_at: datetime
     updated_at: datetime | None
