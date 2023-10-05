@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from constants import SubscribeType
+from constants import SubscribeType, SubscribeStatus
 from db.postgres import get_session
 from repository.payment import PaymentRepository
 from repository.subscribe import SubscribeRepository
@@ -38,11 +38,29 @@ class SubscribeService:
             case SubscribeType.YEARLY:
                 return start_date + relativedelta(years=1)
 
+    async def _check_exist_subscribes(self, subscribe_create: SubscribeCreateScheme):
+        """Проверка на существующие подписки"""
+
+        exist_pending_subscribes = await self.find(
+            subscribe_filter=SubscribeFindScheme(
+                user_id=subscribe_create.user_id,
+                subscribe_type=subscribe_create.subscribe_type,
+                status=SubscribeStatus.PENDING,
+            ),
+        )
+        if exist_pending_subscribes:
+            subscribe_id = exist_pending_subscribes[0].id
+            raise RuntimeError(
+                f"User have pending subscribe (ID: {subscribe_id}) already. Please, pay this subscribe or canceled it."
+            )
+
     async def create(
         self,
         subscribe_data: SubscribeCreateScheme,
     ) -> SubscribeDBScheme:
         """Создание подписки."""
+
+        await self._check_exist_subscribes(subscribe_data)
 
         today = datetime.utcnow()
         end_date = self._calculate_end_date(start_date=today, subscribe_type=subscribe_data.subscribe_type)
@@ -67,7 +85,7 @@ class SubscribeService:
 
         return SubscribeDBScheme.from_orm(db_subscribe)
 
-    async def find(self, subscribe_filter: SubscribeFindScheme, page: int, page_size: int) -> list[SubscribeDBScheme]:
+    async def find(self, subscribe_filter: SubscribeFindScheme, page: int = 1, page_size: int = 20) -> list[SubscribeDBScheme]:
         result = await self.subscribe.read_optional(
             equal_fields=subscribe_filter.dict(
                 include={"user_id", "subscribe_type", "auto_payment", "status"}, exclude_none=True

@@ -30,16 +30,20 @@ async def create_subscribe(
 ) -> RedirectResponse:
     """Создание подписки."""
 
+    # Если пользователь не админ, игнорируется user_id и создается подписка себе
     if Rules.admin_rules not in user.rules:
         subscribe_create.user_id = user.id
 
+    # Создание новой подписки
     subscribe = await subscribe_service.create(subscribe_create)
+    # Создание новой оплаты
     payment = await payment_service.create(
         subscribe_id=subscribe.id,
         subscribe_type=subscribe.subscribe_type,
         user_id=subscribe_create.user_id,
         payment_type=subscribe_create.payment_type,
     )
+    # Процедура оплаты
     payment_method = payment_service.choose_payment_method(payment)
     payment_response = payment_method.send_payment()
     await payment_service.update(
