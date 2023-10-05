@@ -52,7 +52,7 @@ async def create_payment(
 
     pay_url = payment_response.confirmation.confirmation_url
     logging.debug(f"Redirect to: {pay_url}")
-    return RedirectResponse(url=pay_url)
+    return RedirectResponse(url=pay_url, status_code=status.HTTP_302_FOUND)
 
 
 @router.get("/{id}", response_model=PaymentDBScheme)
