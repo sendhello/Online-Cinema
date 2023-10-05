@@ -9,7 +9,7 @@ class EmailScheme(Model):
     """Модель email-сообщения."""
 
     notification_id: UUID = Field(description="ID уведомления")
-    email: EmailStr = Field("Уведомление", description="Тема письма")
+    email: EmailStr = Field(description="Адрес получателя")
     subject: str = Field("Уведомление", description="Тема письма")
     from_email: EmailStr = Field("no-reply@example.com", description="Email-адрес отправителя")
     from_name: str = Field("Онлайн-Кинотеатр", description="Имя отправителя")
