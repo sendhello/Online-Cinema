@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from constants import SubscribeStatus, SubscribeType
-from models.payment import Payment
+
 from .base import Base, BaseDBModel
 
 
@@ -18,4 +18,4 @@ class Subscribe(Base, BaseDBModel):
     auto_payment = Column(Boolean)
     status = Column(Enum(SubscribeStatus))
 
-    payments: "list[Payment]" = relationship("Payment", back_populates="subscribe")
+    payments = relationship("Payment", back_populates="subscribe")

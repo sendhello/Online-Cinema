@@ -16,3 +16,8 @@ class YookassaPayment(Model):
     confirmation: Confirmation
     capture: bool = True
     description: str
+
+
+class YookassaRefund(Model):
+    amount: Amount
+    payment_id: str

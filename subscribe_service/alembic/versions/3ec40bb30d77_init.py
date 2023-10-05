@@ -1,8 +1,8 @@
 """init
 
-Revision ID: f6c9d7021a95
+Revision ID: 3ec40bb30d77
 Revises:
-Create Date: 2023-10-04 15:10:55.307308
+Create Date: 2023-10-05 19:47:42.506996
 
 """
 import sqlalchemy as sa
@@ -11,7 +11,7 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision = "f6c9d7021a95"
+revision = "3ec40bb30d77"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,7 +40,16 @@ def upgrade() -> None:
         sa.Column("payment_date", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("CREATE", "PENDING", "WAITING_FOR_CAPTURE", "SUCCEEDED", "CANCELED", "ERROR", name="paymentstatus"),
+            sa.Enum(
+                "CREATE",
+                "PENDING",
+                "WAITING_FOR_CAPTURE",
+                "SUCCEEDED",
+                "CANCELED",
+                "REFUND",
+                "ERROR",
+                name="paymentstatus",
+            ),
             nullable=True,
         ),
         sa.Column("user_id", sa.UUID(), nullable=False),

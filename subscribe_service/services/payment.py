@@ -3,18 +3,14 @@ from datetime import datetime
 from functools import lru_cache
 from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
-from constants import PRICE_MAP, PaymentType, SubscribeType
+from constants import PRICE_MAP, PaymentStatus, PaymentType, SubscribeType
 from db.postgres import get_session
 from repository.payment import PaymentRepository
-from schemas.payment import (
-    PaymentDBCreateScheme,
-    PaymentDBScheme,
-    PaymentFindScheme,
-    PaymentUpdateScheme,
-)
+from schemas.payment import PaymentDBCreateScheme, PaymentDBScheme, PaymentFindScheme, PaymentUpdateScheme
 from services.yookassa import YookassaService
 
 
@@ -25,10 +21,32 @@ class PaymentService:
     def __init__(self, db: AsyncSession) -> None:
         self.payment = PaymentRepository(db)
 
+    async def _check_exist_payments(self, subscribe_id: UUID, payment_type: PaymentType):
+        """Проверка существующих оплат"""
+
+        exist_payments = await self.find(
+            PaymentFindScheme(
+                subscribe_id=subscribe_id,
+                payment_type=payment_type,
+            ),
+        )
+        if any(payment.status == PaymentStatus.SUCCEEDED for payment in exist_payments):
+            raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="This subscribe payed already.")
+
+        pending_payments = [payment for payment in exist_payments if payment.status == PaymentStatus.PENDING]
+        if pending_payments:
+            pending_payment = pending_payments[0].id
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail=f"This subscribe have pending payment ({pending_payment}). Please try repeat pay it",
+            )
+
     async def create(
         self, subscribe_id: UUID, subscribe_type: SubscribeType, user_id: UUID, payment_type: PaymentType
     ) -> PaymentDBScheme:
         """Создание оплаты."""
+
+        await self._check_exist_payments(subscribe_id, payment_type)
 
         amount = PRICE_MAP[subscribe_type]
         new_payment = PaymentDBCreateScheme(
@@ -51,7 +69,9 @@ class PaymentService:
 
         return PaymentDBScheme.from_orm(db_payment)
 
-    async def find(self, payment_filter: PaymentFindScheme, page: int, page_size: int) -> list[PaymentDBScheme]:
+    async def find(
+        self, payment_filter: PaymentFindScheme, page: int = 1, page_size: int = 20
+    ) -> list[PaymentDBScheme]:
         db_payments = await self.payment.read_optional(
             equal_fields=payment_filter.dict(
                 include={"user_id", "subscribe_id", "payment_type", "status", "currency", "amount", "remote_id"},

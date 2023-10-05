@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from starlette import status
 
 from api.v1.deps import PaginateQueryParams
-from constants import PaymentStatus, PaymentType
+from constants import PaymentStatus, PaymentType, SubscribeStatus
 from schemas.payment import (
     PaymentCreateScheme,
     PaymentDBScheme,
@@ -17,6 +17,7 @@ from schemas.payment import (
     PaymentFindScheme,
     PaymentUpdateScheme,
 )
+from schemas.subscribe import SubscribeUpdateScheme
 from schemas.user import Rules, User
 from security import security_jwt
 from services.payment import PaymentService, get_payment_service
@@ -40,8 +41,10 @@ async def create_payment(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     payment = await payment_service.create(
-        **payment_create.dict(),
-        user_id=user.id,
+        subscribe_id=payment_create.subscribe_id,
+        subscribe_type=subscribe.subscribe_type,
+        payment_type=payment_create.payment_type,
+        user_id=subscribe.user_id,
     )
     payment_method = payment_service.choose_payment_method(payment)
     payment_response = payment_method.send_payment()
@@ -58,7 +61,7 @@ async def create_payment(
     return RedirectResponse(url=pay_url, status_code=status.HTTP_302_FOUND)
 
 
-@router.get("/{id}/repeat", response_model=PaymentDBScheme)
+@router.post("/{id}/repeat", response_model=PaymentDBScheme)
 async def repeat_payment_by_id(
     id: UUID,
     payment_service: Annotated[PaymentService, Depends(get_payment_service)],
@@ -88,6 +91,40 @@ async def repeat_payment_by_id(
     pay_url = payment_response.confirmation.confirmation_url
     logging.debug(f"Redirect to: {pay_url}")
     return RedirectResponse(url=pay_url, status_code=status.HTTP_302_FOUND)
+
+
+@router.post("/{id}/refund", response_model=PaymentDBScheme)
+async def refund_payment_by_id(
+    id: UUID,
+    payment_service: Annotated[PaymentService, Depends(get_payment_service)],
+    subscribe_service: Annotated[SubscribeService, Depends(get_subscribe_service)],
+    user: Annotated[User | None, Depends(security_jwt)],
+) -> PaymentDBScheme:
+    """Возврат платежа по его ID."""
+
+    payment = await payment_service.get(id)
+    if payment.user_id != user.id and Rules.admin_rules not in user.rules:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    if payment.status != PaymentStatus.SUCCEEDED:
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED, detail="This payment not succeeded. Action not allowed."
+        )
+
+    payment_method = payment_service.choose_payment_method(payment)
+    refund_response = payment_method.refund()
+    if refund_response.status != "succeeded":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error refund.")
+
+    await subscribe_service.update(payment.subscribe_id, SubscribeUpdateScheme(status=SubscribeStatus.CANCELED))
+    await payment_service.update(
+        id=payment.id,
+        payment_fields=PaymentDBUpdateScheme(
+            remote_id=refund_response.id,
+            status=PaymentStatus.REFUND,
+        ),
+    )
+    return payment
 
 
 @router.get("/{id}", response_model=PaymentDBScheme)

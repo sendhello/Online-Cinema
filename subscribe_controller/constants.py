@@ -38,6 +38,7 @@ class PaymentStatus(StrEnum):
     WAITING_FOR_CAPTURE = auto()
     SUCCEEDED = auto()
     CANCELED = auto()
+    REFUND = auto()
     ERROR = auto()
 
 

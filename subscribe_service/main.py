@@ -24,9 +24,7 @@ app = FastAPI(
     default_response_class=ORJSONResponse,
 )
 
-if settings.show_traceback:
-    app.middleware("http")(exception_traceback_middleware)
-
+app.middleware("http")(exception_traceback_middleware)
 for exc in (ConnectTimeout, ConnectError):
     app.exception_handler(exc)(partial(connection_timeout_handler, settings, logger))
 app.exception_handler(HTTPStatusError)(partial(http_status_handler, settings, logger))

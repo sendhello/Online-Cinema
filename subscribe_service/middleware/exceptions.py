@@ -15,6 +15,7 @@ logger = logging.getLogger("api")
 async def exception_traceback_middleware(request: Request, call_next):
     try:
         return await call_next(request)
+
     except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError) as e:
         logger.info(f"Connection to {e.request.url} timed out")
         detail = {"message": "Service unavailable"}
