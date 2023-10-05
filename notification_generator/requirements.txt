@@ -1,0 +1,4 @@
+pydantic[email]==1.10.8
+aio-pika==9.2.2
+httpx==0.24.1
+orjson==3.8.13

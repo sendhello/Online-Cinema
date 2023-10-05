@@ -19,7 +19,7 @@ async def is_rate_limit_exceeded(token):
 
     redis = await get_redis()
     now = datetime.now()
-    key = f'{token}:{now.minute}'
+    key = f"{token}:{now.minute}"
 
     pipe = redis.pipeline()
     pipe.incr(key, 1)

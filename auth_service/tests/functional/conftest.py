@@ -19,10 +19,10 @@ from auth_service.main import app
 
 db = [
     {
-        'email': 'test@test.ru',
-        'password': 'password',
-        'first_name': 'Тест',
-        'last_name': 'Тестов',
+        "email": "test@test.ru",
+        "password": "password",
+        "first_name": "Тест",
+        "last_name": "Тестов",
     }
 ]
 
@@ -38,11 +38,11 @@ def mock_redis():
 @pytest.fixture
 def mock_save():
     async def inner(self: CRUDMixin, commit: bool = True):
-        if getattr(self, 'id', '') is None:
+        if getattr(self, "id", "") is None:
             self.id = UUID(USER_UUID)
-        if getattr(self, 'created_at', '') is None:
+        if getattr(self, "created_at", "") is None:
             self.created_at = datetime(2023, 4, 1)
-        if getattr(self, 'updated_at', '') is None:
+        if getattr(self, "updated_at", "") is None:
             self.updated_at = datetime(2023, 4, 1)
 
         return self
@@ -83,7 +83,7 @@ def mock_get_user():
 @pytest.fixture
 def mock_user_check_password():
     def inner(self, password: str) -> bool:
-        return password == 'password'
+        return password == "password"
 
     return inner
 
@@ -111,7 +111,7 @@ def mock_user_get_all():
 @pytest.fixture
 def mock_role_get_by_id():
     async def inner(id_: str):
-        role = Role(title='manager')
+        role = Role(title="manager")
         role.id = UUID(ROLE_UUID)
         role.rules = [Rules.user_rules.value]
         return role
@@ -122,7 +122,7 @@ def mock_role_get_by_id():
 @pytest.fixture
 def mock_role_get_all():
     async def inner(page, page_size):
-        role = Role(title='manager')
+        role = Role(title="manager")
         role.id = UUID(ROLE_UUID)
         role.rules = [Rules.user_rules.value]
         return [role]
@@ -133,7 +133,7 @@ def mock_role_get_all():
 @pytest.fixture
 def mock_get_role():
     async def inner(self, commit=True):
-        role = Role(title='manager')
+        role = Role(title="manager")
         role.id = UUID(ROLE_UUID)
         role.rules = [Rules.user_rules.value]
         return role
@@ -146,7 +146,7 @@ def mock_history_get_by_user_id():
     async def inner(user_id: UUID, page, page_size):
         history = History(
             user_id=user_id,
-            user_agent='testclient',
+            user_agent="testclient",
         )
         history.created_at = datetime(2023, 4, 1)
         return [history]
@@ -171,17 +171,17 @@ def client(
     mock_history_get_by_user_id,
 ):
     # monkeypatch.setattr('schemas.token.get_redis', mock_redis)
-    monkeypatch.setattr('db.redis_db.redis', redis)
-    monkeypatch.setattr(CRUDMixin, 'save', mock_save)
-    monkeypatch.setattr(User, 'delete', mock_get_user)
-    monkeypatch.setattr(User, 'get_by_email', mock_user_get_by_email)
-    monkeypatch.setattr(User, 'get_by_id', mock_user_get_by_id)
-    monkeypatch.setattr(User, 'check_password', mock_user_check_password)
-    monkeypatch.setattr(User, 'change_password', mock_user_change_password)
-    monkeypatch.setattr(User, 'get_all', mock_user_get_all)
-    monkeypatch.setattr(Role, 'get_by_id', mock_role_get_by_id)
-    monkeypatch.setattr(Role, 'get_all', mock_role_get_all)
-    monkeypatch.setattr(Role, 'delete', mock_get_role)
-    monkeypatch.setattr(History, 'get_by_user_id', mock_history_get_by_user_id)
+    monkeypatch.setattr("db.redis_db.redis", redis)
+    monkeypatch.setattr(CRUDMixin, "save", mock_save)
+    monkeypatch.setattr(User, "delete", mock_get_user)
+    monkeypatch.setattr(User, "get_by_email", mock_user_get_by_email)
+    monkeypatch.setattr(User, "get_by_id", mock_user_get_by_id)
+    monkeypatch.setattr(User, "check_password", mock_user_check_password)
+    monkeypatch.setattr(User, "change_password", mock_user_change_password)
+    monkeypatch.setattr(User, "get_all", mock_user_get_all)
+    monkeypatch.setattr(Role, "get_by_id", mock_role_get_by_id)
+    monkeypatch.setattr(Role, "get_all", mock_role_get_all)
+    monkeypatch.setattr(Role, "delete", mock_get_role)
+    monkeypatch.setattr(History, "get_by_user_id", mock_history_get_by_user_id)
 
     return TestClient(app)

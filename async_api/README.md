@@ -14,7 +14,7 @@
 
 Группа разработки:
 
-* Иван Баженов (*[@sendhello](https://www.google.com)*)
+* Иван Баженов (*[@sendhello](https://github.com/sendhello)*)
 * Александр Сухарев (*[@ksieuk](https://github.com/ksieuk)*)
 
 ## Описание обязательных методов для запуска сервиса

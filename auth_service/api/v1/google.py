@@ -26,7 +26,7 @@ from starlette import status
 router = APIRouter()
 
 
-@router.post('/auth', response_model=GoogleToken)
+@router.post("/auth", response_model=GoogleToken)
 async def auth():
     flow = Flow.from_client_config(
         client_config=settings.google_client_config,
@@ -39,7 +39,7 @@ async def auth():
     return RedirectResponse(auth_uri[0])
 
 
-@router.get('/auth_return', response_model=Tokens)
+@router.get("/auth_return", response_model=Tokens)
 async def auth_return(
     code: Annotated[str | None, Query()] = None,
     error: Annotated[str | None, Query()] = None,
@@ -51,14 +51,10 @@ async def auth_return(
     authorize: AuthJWT = Depends(),
 ) -> Tokens:
     if error is not None:
-        HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail='Authorization not allowed'
-        )
+        HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization not allowed")
 
     if code is None:
-        HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Authorization code not got'
-        )
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization code not got")
 
     flow = Flow.from_client_config(
         client_config=settings.google_client_config,
@@ -75,7 +71,7 @@ async def auth_return(
         )
 
     credentials = flow.credentials
-    user_info_service = build('oauth2', 'v2', credentials=credentials)
+    user_info_service = build("oauth2", "v2", credentials=credentials)
     raw_user_info = user_info_service.userinfo().get().execute()
     user_info = UserInfo.parse_obj(raw_user_info)
 
@@ -95,14 +91,12 @@ async def auth_return(
         user_dto = jsonable_encoder(user_create)
         try:
             db_user = await User.create(**user_dto)
-            await Social.create(
-                social_id=user_info.id, type=SocialType.google, user_id=db_user.id
-            )
+            await Social.create(social_id=user_info.id, type=SocialType.google, user_id=db_user.id)
 
         except IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail='User with such email is registered already',
+                detail="User with such email is registered already",
             )
 
     user_in_db = UserCreated.from_orm(db_user)

@@ -14,9 +14,7 @@ from redis.asyncio import Redis
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    redis_db.redis = Redis(
-        host=settings.redis_host, port=settings.redis_port, db=0, decode_responses=True
-    )
+    redis_db.redis = Redis(host=settings.redis_host, port=settings.redis_port, db=0, decode_responses=True)
     yield
 
     await redis_db.redis.close()
@@ -25,10 +23,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title=settings.project_name,
-    description='Сервис аутентификации и авторизации',
-    version='1.0.0',
-    docs_url='/api/auth/openapi',
-    openapi_url='/api/auth/openapi.json',
+    description="Сервис аутентификации и авторизации",
+    version="1.0.0",
+    docs_url="/api/auth/openapi",
+    openapi_url="/api/auth/openapi.json",
     default_response_class=ORJSONResponse,
 )
 
@@ -40,6 +38,6 @@ if settings.jaeger_trace:
 
     if not settings.debug:
         # Делаем Header-поле X-Request-Id обязательным
-        app.middleware('http')(required_request_id)
+        app.middleware("http")(required_request_id)
 
-app.include_router(api_router, prefix='/api')
+app.include_router(api_router, prefix="/api")

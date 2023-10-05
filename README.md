@@ -6,12 +6,17 @@
 * [ETL](etl/README.md)
 * [Async API](async_api/README.md)
 * [Auth](auth_service/README.md)
+* [Email Sender](email_sender/README.md)
+* [Notification API](notification_api/README.md)
+* [Notification Generator](notification_generator/README.md)
+* [Subscribe Service](subscribe_service/README.md)
+* [Subscribe Controller](subscribe_controller/README.md)
 
 ### Поддержка проекта
 
 Группа разработки:
 
-* Иван Баженов (*[@sendhello](https://www.google.com)*)
+* Иван Баженов (*[@sendhello](https://github.com/sendhello)*)
 
 ### Запуск сервиса
 ```commandline

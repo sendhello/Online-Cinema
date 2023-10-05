@@ -2,77 +2,9 @@ version: '3.8'
 
 services:
 
-  postgres:
-    container_name: postgres
-    hostname: postgres
-    image: postgres:15.2
-    networks:
-      - network
-    expose:
-      - "5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - admin_pgdata:/var/lib/postgresql/data/
-#      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U app -d movies_database" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  auth_postgres:
-    container_name: auth_postgres
-    hostname: auth_postgres
-    image: postgres:15.2
-    networks:
-      - network
-    ports:
-      - "5434:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${AUTH_POSTGRES_DB}
-    volumes:
-      - auth_pgdata:/var/lib/postgresql/data/
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  elasticsearch:
-    container_name: elasticsearch
-    hostname: elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
-    environment:
-      discovery.type: ${DISCOVERY_TYPE}
-      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    expose:
-      - "9200"
-    networks:
-      - network
-
-  redis:
-    container_name: redis
-    hostname: redis
-    image: redis:7.2-rc1
-    environment:
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
-    volumes:
-      - redis_data:/data
-    expose:
-      - "6379"
-    networks:
-      - network
-
-  admin_panel:
-    container_name: admin_panel
-    hostname: admin_panel
+  admin-panel:
+    container_name: admin-panel
+    hostname: admin-panel
     build: admin_panel
     expose:
       - "8000"
@@ -103,9 +35,9 @@ services:
       retries: 10
       start_period: 5s
 
-  admin_panel_swagger:
-    container_name: admin_panel_swagger
-    hostname: admin_panel_swagger
+  admin-panel-swagger:
+    container_name: admin-panel-swagger
+    hostname: admin-panel-swagger
     image: swaggerapi/swagger-ui
     environment:
       SWAGGER_JSON: ${SWAGGER_JSON}
@@ -118,7 +50,7 @@ services:
     networks:
       - network
     depends_on:
-      - admin_panel
+      - admin-panel
 
   sqlite_to_postgres:
     container_name: sqlite_to_postgres
@@ -135,7 +67,7 @@ services:
     volumes:
       - ./sqlite_to_postgres/db.sqlite:/opt/app/db.sqlite
     depends_on:
-      admin_panel:
+      admin-panel:
         condition: service_healthy
     networks:
       - network
@@ -153,8 +85,7 @@ services:
       USE_REDIS: ${USE_REDIS}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
-      LOAD_PACKAGE_SIZE: ${LOAD_PACKAGE_SIZE}
-      JSON_STORAGE_FILE: ${JSON_STORAGE_FILE}
+      LOAD_PACKAGE_SIZE: ${ETL_LOAD_PACKAGE_SIZE}
       ETL_LOAD_PACKAGE_SIZE: ${ETL_LOAD_PACKAGE_SIZE}
       SLEEP_TIME: ${SLEEP_TIME}
     networks:
@@ -207,13 +138,286 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     networks:
       - network
     expose:
       - "8000"
     depends_on:
       - redis
-      - postgres
+      - auth-postgres
+
+  notification-api:
+    container_name: notification-api
+    hostname: notification-api
+    build: notification_api
+    environment:
+      DEBUG: ${DEBUG}
+      BACKOFF_MAX_TIME: ${NOTIFICATIONS_TASK_BACKOFF_MAX_TIME}
+      POSTGRES_HOST: ${NOTIFICATIONS_POSTGRES_HOST}
+      POSTGRES_PORT: ${NOTIFICATIONS_POSTGRES_PORT}
+      POSTGRES_DATABASE: ${NOTIFICATION_POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+      RABBITMQ_SOURCE_QUEUE_NAME: ${NOTIFICATIONS_RABBITMQ_SOURCE_QUEUE_NAME}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+    networks:
+      - network
+    expose:
+      - "8000"
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-generator:
+    container_name: notification-generator
+    hostname: notification-generator
+    build: notification_generator
+    environment:
+      DEBUG: ${DEBUG}
+      RABBITMQ_SEND_QUEUE_NAME: ${NOTIFICATION_GEN_RABBITMQ_SEND_QUEUE_NAME}
+      NOTIFICATION_API_GATEWAY: ${NOTIFICATION_API_GATEWAY}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      REQUEST_PERIOD: ${REQUEST_PERIOD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+    networks:
+      - network
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      notification-api:
+        condition: service_started
+
+  email-sender:
+    container_name: email-sender
+    hostname: email-sender
+    build: email_sender
+    environment:
+      DEBUG: ${DEBUG}
+      RABBITMQ_SOURCE_QUEUE_NAME: ${EMAIL_SENDER_RABBITMQ_SOURCE_QUEUE_NAME}
+      RABBITMQ_SEND_QUEUE_NAME: ${EMAIL_SENDER_RABBITMQ_SEND_QUEUE_NAME}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+    networks:
+      - network
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      notification-api:
+        condition: service_started
+
+  subscribe-service:
+    container_name: subscribe-service
+    hostname: subscribe-service
+    build: subscribe_service
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      DEBUG: ${DEBUG}
+      SHOW_TRACEBACK: ${SHOW_TRACEBACK}
+      POSTGRES_HOST: ${SUBSCRIBE_POSTGRES_HOST}
+      POSTGRES_PORT: ${SUBSCRIBE_POSTGRES_PORT}
+      POSTGRES_DATABASE: ${SUBSCRIBE_POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST}
+      RABBITMQ_EXCHANGE_TYPE: ${RABBITMQ_EXCHANGE_TYPE}
+      RABBITMQ_PREFETCH_COUNT: ${RABBITMQ_PREFETCH_COUNT}
+      RABBITMQ_SOURCE_QUEUE_NAME: ${SUBSCRIBE_RABBITMQ_SOURCE_QUEUE_NAME}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID}
+      YOOKASSA_API_KEY: ${YOOKASSA_API_KEY}
+      YOOKASSA_RETURN_URL: ${YOOKASSA_RETURN_URL}
+    networks:
+      - network
+    expose:
+      - "8000"
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      subscribe-postgres:
+        condition: service_healthy
+
+  subscribe-controller:
+    container_name: subscribe-controller
+    hostname: subscribe-controller
+    build: subscribe_controller
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      DEBUG: ${DEBUG}
+      REQUEST_PERIOD: ${REQUEST_PERIOD}
+      SUBSCRIBE_SERVICE_GATEWAY: ${SUBSCRIBE_SERVICE_GATEWAY}
+      NOTIFICATION_API_GATEWAY: ${NOTIFICATION_API_GATEWAY}
+      AUTH_GATEWAY: ${AUTH_GATEWAY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SUBSCRIBE_ROLE_ID: ${SUBSCRIBE_ROLE_ID}
+    networks:
+      - network
+    entrypoint: /opt/app/entrypoint.sh
+    depends_on:
+      subscribe-service:
+        condition: service_started
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - admin_pgdata:/var/lib/postgresql/data/
+    #      - ./full_dump.sql:/docker-entrypoint-initdb.d/full_dump.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d movies_database" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-postgres:
+    container_name: auth-postgres
+    hostname: auth-postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
+    volumes:
+      - auth_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d auth" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  notification-postgres:
+    container_name: notification-postgres
+    hostname: notification-postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${NOTIFICATION_POSTGRES_DB}
+    volumes:
+      - notification_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d notification" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  subscribe-postgres:
+    container_name: subscribe-postgres
+    hostname: subscribe-postgres
+    image: postgres:15.2
+    networks:
+      - network
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SUBSCRIBE_POSTGRES_DB}
+    volumes:
+      - subscribe_pgdata:/var/lib/postgresql/data/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d subscribe" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+    environment:
+      discovery.type: ${DISCOVERY_TYPE}
+      xpack.security.enabled: ${XPACK_SECURITY_ENABLED}
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    expose:
+      - "9200"
+    networks:
+      - network
+
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.2-rc1
+    environment:
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    networks:
+      - network
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3.12.4-management-alpine
+    networks:
+      - network
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbit disk_free_limit 2147483648
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   jaeger:
     container_name: jaeger
@@ -222,6 +426,15 @@ services:
     ports:
       - "6831:6831/udp"
       - "16686:16686"
+    networks:
+      - network
+
+  mailhog:
+    image: jcalonso/mailhog:latest
+    expose:
+      - "1025"
+    ports:
+      - "8025:8025"  # web ui
     networks:
       - network
 
@@ -235,8 +448,9 @@ services:
       - static_volume:/opt/app/static
     depends_on:
       - api
-      - admin_panel
+      - admin-panel
       - auth
+      - notification-api
     ports:
       - "80:80"
     networks:
@@ -245,9 +459,12 @@ services:
 volumes:
   admin_pgdata:
   auth_pgdata:
+  notification_pgdata:
+  subscribe_pgdata:
   redis_data:
   elasticsearch_data:
   static_volume:
+  rabbitmq:
 
 networks:
   network:

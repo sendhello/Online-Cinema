@@ -1,0 +1,28 @@
+@startuml
+skinparam componentStyle uml2
+
+rectangle BillingService {
+    [SubscribeService]
+    database "subscribe_db" {
+        [ SUBSCRIBES:\n user_id: uuid\n subscribe_type: str\n start_date: timestamp\n end_date:timestamp\n next_payment: timestamp\n auto_payment: bool]
+        [ PAYMENT:\n subscribe_id: uuid\n pay_date: timestamp\n status: str\n  ]
+    }
+    [SubscribeWorker]
+}
+
+[SubscribeService] .d.> [Auth] : Авторизация
+[SubscribeService] <.d.> [subscribe_db]
+[SubscribeService] .d.> [UKassa] : Оплата
+[SubscribeService] .d.> [Auth] : Установка\nроли\nподписчика
+[SubscribeService] .d.> [NotificationAPI] : Уведомления о подписке
+[SubscribeService] <.d. [SubscribeWorker] : Проверка\nстатусов\nподписок\n(период)
+[SubscribeService] <.d. [SubscribeWorker] : Автосписание
+[SubscribeWorker] .d.> [Auth] : Деактивация\nроли\nподписчика
+[SubscribeWorker] .d.> [NotificationAPI] : Уведомления\nоб окончании\nподписки
+
+@enduml
+
+
+Саги на транзакции
+прокси сервис или класс независимый от оплаты
+обработка ответа платежа через очередь, вебхуки и ручные запросы

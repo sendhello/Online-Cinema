@@ -1,0 +1,85 @@
+@startuml
+
+
+skinparam componentStyle uml2
+
+
+Actor Manager
+Actor User
+
+
+rectangle UGC {
+    [Views Proxy]
+
+    database "Kafka" {
+    }
+
+    [Views ETL]
+
+    database "Clickhouse" {
+    }
+}
+
+
+rectangle AsyncAPI {
+    [Async Api]
+    database "ElasticSearch" {
+    }
+    database "Async_cache" {
+    }
+}
+
+
+rectangle Admin {
+    [Admin Panel]
+    database "Admin_pg" {
+    }
+    [ETL]
+}
+
+
+rectangle Auth_service {
+    [Auth]
+    database "Auth_pg" {
+    }
+    database "Auth-cache" {
+    }
+}
+
+
+rectangle BillingService {
+    [Billing]
+    database "billing_pg" {
+    }
+}
+
+
+[Admin Panel] <.u. [Manager] : Добавляет \nфильмы
+[Admin Panel] <.d.> [Admin_pg] : Редактирование \nконтента
+[Admin Panel] .d.> [Auth] : Авторизация
+
+
+[Auth] <.d.> [Auth_pg] : Обновление \nusers, roles
+[Auth] <.r.> [Auth-cache] : Запись \naccess_token
+[Auth] <.u. [Client] : Регистрация \nи получение \nтокенов
+
+
+[Async Api] .d.> [Auth] : Авторизация
+[ETL] ..> [ElasticSearch] : Запись \nfilms
+[ETL] <.u. [Admin_pg] : Чтение \nfilms
+[Async Api] <.u. [Client] : Получение \nконтента
+[Async Api] <.r. [ElasticSearch] : Чтение \nfilms
+[Async Api] <.d.> [Async_cache] : Cache
+
+
+[Client] <.u. [User] : Пользуется \nсервисом
+[Client] <.u. [Manager] : Регистрация
+[Client] .d.> [Views Proxy] : Прогресс \nпросмотра \nфильма \n(каждые \nn секунд)
+[Views Proxy] ..> [Kafka]: Прогресс \nпросмотра \nфильма
+[Kafka] .d.> [Views ETL]
+[Views ETL] ..> [Clickhouse]: складываем \nпачками
+
+[Billing] .d.> [Auth] : Авторизация
+[Billing] <.d.> [billing_pg]
+
+@enduml
