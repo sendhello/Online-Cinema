@@ -20,6 +20,7 @@ from schemas.payment import (
 from schemas.user import Rules, User
 from security import security_jwt
 from services.payment import PaymentService, get_payment_service
+from services.subscribe import SubscribeService, get_subscribe_service
 
 
 router = APIRouter()
@@ -29,17 +30,51 @@ router = APIRouter()
 async def create_payment(
     payment_create: PaymentCreateScheme,
     payment_service: Annotated[PaymentService, Depends(get_payment_service)],
+    subscribe_service: Annotated[SubscribeService, Depends(get_subscribe_service)],
     user: Annotated[User | None, Depends(security_jwt)],
 ) -> RedirectResponse | None:
     """Создание оплаты."""
 
-    if Rules.admin_rules not in user.rules:
+    subscribe = await subscribe_service.get(payment_create.subscribe_id)
+    if subscribe.user_id != user.id and Rules.admin_rules not in user.rules:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     payment = await payment_service.create(
         **payment_create.dict(),
         user_id=user.id,
     )
+    payment_method = payment_service.choose_payment_method(payment)
+    payment_response = payment_method.send_payment()
+    await payment_service.update(
+        id=payment.id,
+        payment_fields=PaymentDBUpdateScheme(
+            remote_id=payment_response.id,
+            status=payment_response.status,
+        ),
+    )
+
+    pay_url = payment_response.confirmation.confirmation_url
+    logging.debug(f"Redirect to: {pay_url}")
+    return RedirectResponse(url=pay_url, status_code=status.HTTP_302_FOUND)
+
+
+@router.get("/{id}/repeat", response_model=PaymentDBScheme)
+async def repeat_payment_by_id(
+    id: UUID,
+    payment_service: Annotated[PaymentService, Depends(get_payment_service)],
+    user: Annotated[User | None, Depends(security_jwt)],
+) -> RedirectResponse:
+    """Попытка повтора платежа по его ID при неудаче ранее."""
+
+    payment = await payment_service.get(id)
+    if payment.user_id != user.id and Rules.admin_rules not in user.rules:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    if payment.status != PaymentStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED, detail="This payment not wait pay. Try create new payment"
+        )
+
     payment_method = payment_service.choose_payment_method(payment)
     payment_response = payment_method.send_payment()
     await payment_service.update(

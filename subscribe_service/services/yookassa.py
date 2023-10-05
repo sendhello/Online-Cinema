@@ -28,7 +28,7 @@ class YookassaService(BasePaymentMethodService):
             confirmation=Confirmation(return_url=settings.yookassa_return_url),
             description=f"payment_id={self.payment.id}",
         )
-        response = PaymentCreator.create(payment_params.dict(), idempotency_key=uuid4())
+        response = PaymentCreator.create(payment_params.dict(), idempotency_key=self.payment.id)
         response_data = response.json()
         logger.info(f"Yookassa payment response: {response_data}")
         return response

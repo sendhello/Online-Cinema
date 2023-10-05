@@ -85,7 +85,9 @@ class SubscribeService:
 
         return SubscribeDBScheme.from_orm(db_subscribe)
 
-    async def find(self, subscribe_filter: SubscribeFindScheme, page: int = 1, page_size: int = 20) -> list[SubscribeDBScheme]:
+    async def find(
+        self, subscribe_filter: SubscribeFindScheme, page: int = 1, page_size: int = 20
+    ) -> list[SubscribeDBScheme]:
         result = await self.subscribe.read_optional(
             equal_fields=subscribe_filter.dict(
                 include={"user_id", "subscribe_type", "auto_payment", "status"}, exclude_none=True
