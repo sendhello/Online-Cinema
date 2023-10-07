@@ -15,7 +15,12 @@ class NotificationApiGateway(BaseAsyncGateway):
         logger.debug("Try send emails...")
         response = await self._client.post(
             "/api/v1/task/",
-            json={"content": message, "type": "email", "user_ids": [str(user_id)], "send_to": datetime.utcnow().isoformat()},
+            json={
+                "content": message,
+                "type": "email",
+                "user_ids": [str(user_id)],
+                "send_to": datetime.utcnow().isoformat(),
+            },
         )
         logger.debug(f"Emails sent with code {response.status_code}")
         response.raise_for_status()
