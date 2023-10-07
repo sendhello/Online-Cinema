@@ -39,7 +39,7 @@ class SubscribeService:
             case SubscribeType.YEARLY:
                 return start_date + relativedelta(years=1)
 
-    async def _check_exist_subscribes(self, subscribe_create: SubscribeCreateScheme):
+    async def _check_exist_pending_subscribes(self, subscribe_create: SubscribeCreateScheme):
         """Проверка на существующие подписки"""
 
         exist_pending_subscribes = await self.find(
@@ -56,27 +56,40 @@ class SubscribeService:
                 detail=ExceptionText.user_have_pending_subscribe.format(subscribe_id=subscribe_id),
             )
 
+    async def _get_exist_subscribes_end_date(self, subscribe_create: SubscribeCreateScheme):
+        """Возвращает дату и время завершения подписки."""
+
+        exist_active_subscribes = await self.find(
+            subscribe_filter=SubscribeFindScheme(
+                user_id=subscribe_create.user_id,
+                status=SubscribeStatus.ACTIVE,
+            ),
+        )
+        if exist_active_subscribes:
+            return max(subscribe.end_date for subscribe in exist_active_subscribes)
+
     async def create(
         self,
         subscribe_data: SubscribeCreateScheme,
     ) -> SubscribeDBScheme:
         """Создание подписки."""
 
-        await self._check_exist_subscribes(subscribe_data)
+        await self._check_exist_pending_subscribes(subscribe_data)
+        new_start_date = await self._get_exist_subscribes_end_date(subscribe_data)
 
-        today = datetime.utcnow()
-        end_date = self._calculate_end_date(start_date=today, subscribe_type=subscribe_data.subscribe_type)
+        start_date = new_start_date or datetime.utcnow()
+        end_date = self._calculate_end_date(start_date=start_date, subscribe_type=subscribe_data.subscribe_type)
         new_subscribe = SubscribeDBCreateScheme(
             subscribe_type=subscribe_data.subscribe_type,
             auto_payment=subscribe_data.auto_payment,
             user_id=subscribe_data.user_id,
-            start_date=today,
+            start_date=start_date,
             end_date=end_date,
             next_payment=end_date,
         )
         db_subscribe = await self.subscribe.create(new_subscribe)
         subscribe = SubscribeDBScheme.from_orm(db_subscribe)
-        logger.debug(f"Created new subscribe: {subscribe.id}")
+        logger.debug(f"Created new subscribe: {subscribe.id}. From: {start_date}, To: {end_date}")
         return subscribe
 
     async def get(self, id: UUID) -> SubscribeDBScheme:
