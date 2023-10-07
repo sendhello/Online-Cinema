@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from constants import PaymentStatus, SubscribeStatus
@@ -70,13 +70,20 @@ class SubscribeServiceGateway(BaseAsyncGateway):
         logger.debug(f"Pending subscribes: {response.json()}")
         return [SubscribeScheme.parse_obj(item) for item in response.json()]
 
-    async def get_expired_subscribes(self, access_token: str) -> list[SubscribeScheme]:
+    async def get_expired_subscribes(
+        self, access_token: str, start_date: date = datetime.utcnow().date(), end_date: date = datetime.utcnow().date()
+    ) -> list[SubscribeScheme]:
         """Получение истекших подписок."""
 
         logger.debug("Try get expired subscribes...")
         response = await self._client.get(
             "/api/v1/subscribe/",
-            params={"status": SubscribeStatus.ACTIVE.value, "end_date": datetime.utcnow().date(), "page_size": 500},
+            params={
+                "status": SubscribeStatus.ACTIVE.value,
+                "start_date": start_date,
+                "end_date": end_date,
+                "page_size": 500,
+            },
             headers={"Authorization": f"Bearer {access_token}"},
         )
         logger.debug(f"Expired subscribes got with code {response.status_code}")

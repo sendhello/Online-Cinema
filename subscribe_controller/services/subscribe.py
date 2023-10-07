@@ -1,10 +1,18 @@
 import logging
+from datetime import datetime, timedelta
 
 from constants import PaymentStatus, SubscribeStatus
+from core.settings import settings
 from gateways.auth import AuthGateway
 from gateways.notification_api import NotificationApiGateway
 from gateways.subscribe_service import SubscribeServiceGateway
-from templates.message import PAYMENT_CANCELED, PAYMENT_SUCCESS, SUBSCRIBE_CANCELED, SUBSCRIBE_IS_ACTIV
+from templates.message import (
+    PAYMENT_CANCELED,
+    PAYMENT_SUCCESS,
+    SUBSCRIBE_CANCELED,
+    SUBSCRIBE_IS_ACTIV,
+    SUBSCRIBE_WILL_BE_CANCELED,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -104,3 +112,22 @@ class SubscribeService:
             )
             await self.auth_gateway.remove_user_role(user_id=subscribe.user_id, access_token=await self.access_token)
             await self.notification_api_gateway.send_email(user_id=subscribe.user_id, message=SUBSCRIBE_CANCELED)
+
+    async def notification_before_expired_subscribes(self, update_token: bool = False) -> None:
+        """Уведомление пользователей об окончании подписки."""
+
+        if update_token:
+            await self.update_token()
+
+        date_check = datetime.utcnow().date() + timedelta(days=settings.notify_days_before_end_subscribe)
+        expired_subscribes = await self.subscribe_service_gateway.get_expired_subscribes(
+            access_token=await self.access_token,
+            start_date=date_check,
+            end_date=date_check,
+        )
+
+        for subscribe in expired_subscribes:
+            await self.notification_api_gateway.send_email(
+                user_id=subscribe.user_id,
+                message=SUBSCRIBE_WILL_BE_CANCELED.format(days=settings.notify_days_before_end_subscribe),
+            )
