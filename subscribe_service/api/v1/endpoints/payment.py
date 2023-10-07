@@ -9,7 +9,7 @@ from fastapi.responses import RedirectResponse
 from starlette import status
 
 from api.v1.deps import PaginateQueryParams
-from constants import PaymentStatus, PaymentType, SubscribeStatus
+from constants import ExceptionText, PaymentStatus, PaymentType, SubscribeStatus
 from schemas.payment import (
     PaymentCreateScheme,
     PaymentDBScheme,
@@ -74,9 +74,7 @@ async def repeat_payment_by_id(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     if payment.status != PaymentStatus.PENDING:
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED, detail="This payment not wait pay. Try create new payment"
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=ExceptionText.payment_not_wait_pay)
 
     payment_method = payment_service.choose_payment_method(payment)
     payment_response = payment_method.send_payment()
@@ -107,14 +105,12 @@ async def refund_payment_by_id(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     if payment.status != PaymentStatus.SUCCEEDED:
-        raise HTTPException(
-            status_code=status.HTTP_423_LOCKED, detail="This payment not succeeded. Action not allowed."
-        )
+        raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=ExceptionText.payment_not_succeeded)
 
     payment_method = payment_service.choose_payment_method(payment)
     refund_response = payment_method.refund()
     if refund_response.status != "succeeded":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error refund.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ExceptionText.error_refund)
 
     await subscribe_service.update(payment.subscribe_id, SubscribeUpdateScheme(status=SubscribeStatus.CANCELED))
     await payment_service.update(

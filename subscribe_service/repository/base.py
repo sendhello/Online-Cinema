@@ -4,6 +4,7 @@ from typing import Sequence, TypeVar
 from uuid import UUID
 
 from sqlalchemy import and_, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.base import Base
@@ -38,7 +39,7 @@ class SQLAlchemyRepository(ABC):
 
             return db_obj_new
 
-        except Exception as e:
+        except SQLAlchemyError as e:
             await self.db.rollback()
 
             logger.exception("Error while uploading new object to database")
@@ -121,7 +122,4 @@ class SQLAlchemyRepository(ABC):
             await self.db.delete(res)
             await self.db.commit()
             logger.info("Entity: {res} successfully deleted from database.")
-        else:
-            raise ValueError(f"Entity with ID {id} not found")
-
-        return res
+            return res

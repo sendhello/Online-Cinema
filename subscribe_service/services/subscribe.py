@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from constants import SubscribeStatus, SubscribeType
+from constants import ExceptionText, SubscribeStatus, SubscribeType
 from db.postgres import get_session
 from repository.payment import PaymentRepository
 from repository.subscribe import SubscribeRepository
@@ -53,8 +53,7 @@ class SubscribeService:
             subscribe_id = exist_pending_subscribes[0].id
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
-                detail=f"User have pending subscribe (ID: {subscribe_id}) already. "
-                f"Please, pay this subscribe or canceled it.",
+                detail=ExceptionText.user_have_pending_subscribe.format(subscribe_id=subscribe_id),
             )
 
     async def create(
@@ -84,7 +83,7 @@ class SubscribeService:
         db_subscribe = await self.subscribe.read_by_id(id)
         if not db_subscribe:
             logger.debug(f"Subscribe with {id} not found")
-            raise HTTPException(detail="Task not found", status_code=status.HTTP_404_NOT_FOUND)
+            raise HTTPException(detail=ExceptionText.task_not_found, status_code=status.HTTP_404_NOT_FOUND)
 
         return SubscribeDBScheme.from_orm(db_subscribe)
 

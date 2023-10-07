@@ -1,10 +1,13 @@
 from logging import getLogger
 
+from fastapi import HTTPException
+from starlette import status
 from yookassa import Configuration
 from yookassa import Payment as PaymentCreator
 from yookassa import Refund
 from yookassa.domain.response import PaymentResponse, RefundResponse
 
+from constants import ExceptionText
 from core.settings import settings
 from schemas.payment import PaymentDBScheme
 from schemas.yookassa import Amount, Confirmation, YookassaPayment, YookassaRefund
@@ -12,8 +15,8 @@ from services.base import BasePaymentMethodService
 
 
 logger = getLogger(__name__)
-Configuration.account_id = settings.yookassa_shop_id
-Configuration.secret_key = settings.yookassa_api_key
+Configuration.account_id = settings.yookassa.yookassa_shop_id
+Configuration.secret_key = settings.yookassa.yookassa_api_key
 
 
 class YookassaService(BasePaymentMethodService):
@@ -25,7 +28,9 @@ class YookassaService(BasePaymentMethodService):
 
         payment_params = YookassaPayment(
             amount=Amount(value=self.payment.amount),
-            confirmation=Confirmation(return_url=settings.yookassa_return_url.format(payment_id=str(self.payment.id))),
+            confirmation=Confirmation(
+                return_url=settings.yookassa.yookassa_return_url.format(payment_id=str(self.payment.id))
+            ),
             description=f"payment_id={self.payment.id}",
         )
         response = PaymentCreator.create(payment_params.dict(), idempotency_key=self.payment.id)
@@ -38,7 +43,7 @@ class YookassaService(BasePaymentMethodService):
 
         logger.debug(f"Try payment status by payment {self.payment.id} (remote_id={self.payment.remote_id})...")
         if self.payment.remote_id is None:
-            raise ValueError("Payment don't have 'remote_id'")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ExceptionText.not_remote_id)
 
         response = PaymentCreator.find_one(str(self.payment.remote_id))
         response_data = response.json()

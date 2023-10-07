@@ -15,7 +15,7 @@ from core.settings import settings
 
 Base = declarative_base(metadata=MetaData())
 
-engine = create_async_engine(settings.pg_dsn, echo=settings.debug, future=True)
+engine = create_async_engine(settings.postgres.pg_dsn, echo=settings.debug, future=True)
 create_async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
