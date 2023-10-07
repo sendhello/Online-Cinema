@@ -1,5 +1,6 @@
 import logging
 from abc import ABC
+from http import HTTPStatus
 
 import httpx
 
@@ -27,14 +28,14 @@ class BaseAsyncGateway(ABC):
     async def log_response(cls, response: httpx.Response):
         await response.aread()
         logger.info(cls._get_ok_response_log(response))
-        if response.status_code >= 400:
+        if response.status_code >= HTTPStatus.BAD_REQUEST:
             logger.error(cls._get_bad_request_log(response))
 
     @classmethod
     async def log_response_with_body(cls, response: httpx.Response):
         await response.aread()
         logger.info(cls._get_ok_response_log(response) + cls._get_ok_response_body_log(response))
-        if response.status_code >= 400:
+        if response.status_code >= HTTPStatus.BAD_REQUEST:
             logger.error(cls._get_bad_request_log(response))
 
     @staticmethod

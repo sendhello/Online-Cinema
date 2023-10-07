@@ -9,21 +9,6 @@ from core.logger import LOGGING
 logger_config(LOGGING)
 
 
-class ProjectSettings(BaseSettings):
-    project_name: str = "Subscribe Service"
-    environment: str = "dev"
-    debug: bool = False
-    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    auth_gateway: AnyUrl
-    show_traceback: bool = False
-
-    @property
-    def user_agent(self):
-        concatenated_name = self.project_name.replace(" ", "")
-        return f"{concatenated_name}/1.0"
-
-
 class PostgresSettings(BaseSettings):
     """Настройки Postgres."""
 
@@ -60,8 +45,21 @@ class SentrySettings(BaseSettings):
     shutdown_timeout: int = 30
 
 
-class Settings(ProjectSettings, PostgresSettings, YooKassaSettings, SentrySettings):
-    ...
+class Settings(BaseSettings):
+    project_name: str = "Subscribe Service"
+    environment: str = "dev"
+    debug: bool = False
+    base_dir: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    auth_gateway: AnyUrl
+    show_traceback: bool = False
+    postgres: PostgresSettings = PostgresSettings()
+    yookassa: YooKassaSettings = YooKassaSettings()
+    sentry: SentrySettings = SentrySettings()
+
+    @property
+    def user_agent(self):
+        concatenated_name = self.project_name.replace(" ", "")
+        return f"{concatenated_name}/1.0"
 
 
 settings = Settings()

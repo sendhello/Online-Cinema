@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     admin_password: str
 
     subscribe_role_id: UUID
+    notify_days_before_end_subscribe = 2
 
 
 settings = Settings()

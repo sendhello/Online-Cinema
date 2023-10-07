@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from constants import PRICE_MAP, PaymentStatus, PaymentType, SubscribeType
+from constants import PRICE_MAP, ExceptionText, PaymentStatus, PaymentType, SubscribeType
 from db.postgres import get_session
 from repository.payment import PaymentRepository
 from schemas.payment import PaymentDBCreateScheme, PaymentDBScheme, PaymentFindScheme, PaymentUpdateScheme
@@ -31,14 +31,14 @@ class PaymentService:
             ),
         )
         if any(payment.status == PaymentStatus.SUCCEEDED for payment in exist_payments):
-            raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="This subscribe payed already.")
+            raise HTTPException(status_code=status.HTTP_423_LOCKED, detail=ExceptionText.subscribe_payed)
 
         pending_payments = [payment for payment in exist_payments if payment.status == PaymentStatus.PENDING]
         if pending_payments:
             pending_payment = pending_payments[0].id
             raise HTTPException(
                 status_code=status.HTTP_423_LOCKED,
-                detail=f"This subscribe have pending payment ({pending_payment}). Please try repeat pay it",
+                detail=ExceptionText.subscribe_have_pending_payment.format(pending_payment=pending_payment),
             )
 
     async def create(
@@ -65,7 +65,7 @@ class PaymentService:
         db_payment = await self.payment.read_by_id(id)
         if not db_payment:
             logger.debug(f"Payment with {id} not found")
-            raise ValueError("Payment not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ExceptionText.payment_not_found)
 
         return PaymentDBScheme.from_orm(db_payment)
 
@@ -112,10 +112,16 @@ class PaymentService:
                 return YookassaService(payment)
 
             case PaymentType.SBER_PAY:
-                raise RuntimeError(f"Payment {payment.payment_type}  don't support now")
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail=ExceptionText.payment_not_support.format(payment_type=payment.payment_type),
+                )
 
             case _:
-                raise RuntimeError(f"Payment {payment.payment_type} don't support now")
+                raise HTTPException(
+                    status_code=status.HTTP_423_LOCKED,
+                    detail=ExceptionText.payment_not_support.format(payment_type=payment.payment_type),
+                )
 
 
 @lru_cache

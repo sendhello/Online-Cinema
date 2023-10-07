@@ -2,6 +2,7 @@ import logging
 from abc import ABC
 
 import httpx
+from starlette import status
 
 from core.settings import settings
 
@@ -27,14 +28,14 @@ class BaseAsyncGateway(ABC):
     async def log_response(cls, response: httpx.Response):
         await response.aread()
         logger.info(cls._get_ok_response_log(response))
-        if response.status_code >= 400:
+        if response.status_code >= status.HTTP_400_BAD_REQUEST:
             logger.error(cls._get_bad_request_log(response))
 
     @classmethod
     async def log_response_with_body(cls, response: httpx.Response):
         await response.aread()
         logger.info(cls._get_ok_response_log(response) + cls._get_ok_response_body_log(response))
-        if response.status_code >= 400:
+        if response.status_code >= status.HTTP_400_BAD_REQUEST:
             logger.error(cls._get_bad_request_log(response))
 
     @staticmethod

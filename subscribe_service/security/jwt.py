@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
 from starlette import status
 
+from constants import ExceptionText
 from core.settings import settings
 from gateways.auth import auth_gateway
 from schemas.user import User
@@ -28,13 +29,13 @@ class JWTBearer(HTTPBearer):
         if not credentials:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid authorization code.",
+                detail=ExceptionText.invalid_auth_code,
             )
 
         if not credentials.scheme == "Bearer":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only Bearer token might be accepted",
+                detail=ExceptionText.only_bearer_token,
             )
 
         authorization = request.headers.get("Authorization")

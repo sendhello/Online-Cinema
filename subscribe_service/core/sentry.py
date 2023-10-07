@@ -15,11 +15,11 @@ def connect_sentry(settings: Settings, integrations: Sequence[Integration] = Non
     logging.getLogger("sentry_sdk.errors").setLevel(logging.ERROR)
     init(
         environment=settings.environment,
-        dsn=settings.sentry_dsn,
+        dsn=settings.sentry.sentry_dsn,
         server_name=settings.project_name,
         debug=settings.debug,
-        include_local_variables=settings.with_locals,
-        shutdown_timeout=settings.shutdown_timeout,
+        include_local_variables=settings.sentry.with_locals,
+        shutdown_timeout=settings.sentry.shutdown_timeout,
         integrations=integrations,
         # traces_sample_rate=0.2,
         # release="0.1.0",

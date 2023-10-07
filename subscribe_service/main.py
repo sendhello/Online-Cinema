@@ -13,7 +13,7 @@ from middleware.exceptions import exception_traceback_middleware
 
 
 logger = getLogger(__name__)
-if settings.sentry_dsn:
+if settings.sentry.sentry_dsn:
     connect_sentry(settings)
 
 
