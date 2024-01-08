@@ -1,6 +1,9 @@
-# Online-кинотеатр
+# Online Cinema
 
-### Список сервисов online-кинотеатра:
+### Description
+Online cinema educational project. Developed in a microservice paradigm, the following technologies and frameworks are used: Python, FastAPI, Postgress, RabbitMQ, Django, ElasticSearch, Jaeger, Docker, nginx, Mailhog, Redis.
+
+### Apps:
 * [Admin Panel](admin_panel/README.md)
 * [SQLite to Postgres](sqlite_to_postgres/README.md)
 * [ETL](etl/README.md)
@@ -12,28 +15,28 @@
 * [Subscribe Service](subscribe_service/README.md)
 * [Subscribe Controller](subscribe_controller/README.md)
 
-### Поддержка проекта
+### Team
 
-Группа разработки:
+Developers:
 
-* Иван Баженов (*[@sendhello](https://github.com/sendhello)*)
+* Ivan Bazhenov (*[@sendhello](https://github.com/sendhello)*)
 
-### Запуск сервиса
+### Service run
 ```commandline
 docker compose up --build
 ```
 
-### Jaeger-Трассировка 
+### Jaeger-Trace
 http://localhost:16686
 
-### Запуск functional-тестов
+### Run functional-tests
 
-##### Сейвис Async-API
+##### Servise Async-API
 ```commandline
 docker compose -f tests/functional/docker-compose.yml up --build
 ```
 
-##### Сейвис Auth
+##### Servise Auth
 ```commandline
 pytest -vv auth_service
 ```
